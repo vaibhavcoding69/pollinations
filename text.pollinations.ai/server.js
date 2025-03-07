@@ -123,7 +123,7 @@ app.use(cors());
 
 // New route handler for root path
 app.get('/', (req, res) => {
-    res.redirect('https://sur.pollinations.ai');
+    res.redirect('https://pollinations.diy');
 });
 
 app.set('trust proxy', true);

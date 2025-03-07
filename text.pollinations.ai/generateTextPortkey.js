@@ -89,6 +89,19 @@ const MODEL_MAPPING = {
     'llama-scaleway': 'llama-3.3-70b-instruct',
     'llamalight-scaleway': 'llama-3.1-8b-instruct',
     'deepseek-r1-llama': 'deepseek-r1-distill-llama-70b',
+    // OpenRouter models
+    'claude-email': 'anthropic/claude-3-sonnet',
+    'deepseek-openrouter': 'deepseek/deepseek-chat',
+    'qwen-openrouter': 'qwen/qwen1.5-72b',
+    'qwen-coder-openrouter': 'qwen/qwen1.5-72b-chat',
+    'llama-openrouter': 'meta-llama/llama-3-70b-chat',
+    'mistral-openrouter': 'mistralai/mistral-7b-instruct',
+    'mistral-large-openrouter': 'mistralai/mistral-large',
+    'llamalight-openrouter': 'meta-llama/llama-3-8b-chat',
+    'claude-3.5-haiku': 'anthropic/claude-3.5-haiku-20241022',
+    // Vertex AI models
+    'gemini': 'gemini-2.0-flash-lite-preview-02-05',
+    'gemini-thinking': 'gemini-2.0-flash-thinking-exp-01-21'
 };
 
 // Unrestricted prompt for Scaleway models
@@ -110,7 +123,20 @@ const SYSTEM_PROMPTS = {
     'llama-scaleway': unrestrictedPrompt,
     'llamalight-scaleway': unrestrictedPrompt,
     'qwen-coder': `You are an expert coding assistant with deep knowledge of programming languages, software architecture, and best practices. Your purpose is to help users write high-quality, efficient, and maintainable code. You provide clear explanations, suggest improvements, and help debug issues while following industry best practices.`,
-    'deepseek-r1-distill-llama-70b': unrestrictedPrompt
+    'deepseek-r1-distill-llama-70b': unrestrictedPrompt,
+    // OpenRouter models
+    'claude-email': 'You are Claude, a helpful AI assistant created by Anthropic. You excel at drafting professional emails and communications.',
+    'deepseek-openrouter': 'You are DeepSeek, a helpful AI assistant. You provide accurate and thoughtful responses.',
+    'qwen-openrouter': 'You are Qwen, a helpful AI assistant developed by Alibaba Cloud. You provide accurate and thoughtful responses.',
+    'qwen-coder-openrouter': 'You are Qwen, an expert coding assistant with deep knowledge of programming languages, software architecture, and best practices.',
+    'llama-openrouter': 'You are Llama, a helpful AI assistant developed by Meta. You provide accurate and thoughtful responses.',
+    'mistral-openrouter': 'You are Mistral, a helpful AI assistant. You provide accurate and thoughtful responses.',
+    'mistral-large-openrouter': 'You are Mistral Large, a powerful AI assistant. You provide accurate, detailed, and thoughtful responses.',
+    'llamalight-openrouter': 'You are Llama, a helpful AI assistant developed by Meta. You provide accurate and thoughtful responses.',
+    'claude-3.5-haiku': 'You are Claude, a helpful AI assistant created by Anthropic. You provide accurate and thoughtful responses.',
+    // Vertex AI models
+    'gemini': 'You are Gemini, a helpful and versatile AI assistant built by Google. You provide accurate, balanced information and can assist with a wide range of tasks while maintaining a respectful and supportive tone.',
+    'gemini-thinking': 'You are Gemini, a helpful and versatile AI assistant built by Google. You provide accurate, balanced information and can assist with a wide range of tasks while maintaining a respectful and supportive tone. When appropriate, show your reasoning step by step.'
 };
 
 // Default options
@@ -145,6 +171,24 @@ const baseScalewayConfig = {
     provider: 'openai',
     'custom-host': `${process.env.SCALEWAY_BASE_URL || 'https://api.scaleway.com/ai-apis/v1'}`,
     authKey: process.env.SCALEWAY_API_KEY,
+};
+
+// Base configuration for OpenRouter models
+const baseOpenRouterConfig = {
+    provider: 'openai',
+    'custom-host': 'https://openrouter.ai/api/v1',
+    authKey: process.env.OPENROUTER_API_KEY,
+    // Additional headers specific to OpenRouter
+    'http-referer': 'https://pollinations.ai',
+    'x-title': 'Pollinations.AI'
+};
+
+// Base configuration for Vertex AI models
+const baseVertexAIConfig = {
+    provider: 'vertex-ai',
+    'vertex-project-id': process.env.GCLOUD_PROJECT_ID,
+    'vertex-region': 'us-central1',
+    authKey: process.env.GCLOUD_ACCESS_TOKEN,
 };
 
 /**
@@ -187,6 +231,30 @@ function createCloudflareModelConfig(additionalConfig = {}) {
 function createScalewayModelConfig(additionalConfig = {}) {
     return {
         ...baseScalewayConfig,
+        ...additionalConfig
+    };
+}
+
+/**
+ * Creates an OpenRouter model configuration
+ * @param {Object} additionalConfig - Additional configuration to merge with base config
+ * @returns {Object} - OpenRouter model configuration
+ */
+function createOpenRouterModelConfig(additionalConfig = {}) {
+    return {
+        ...baseOpenRouterConfig,
+        ...additionalConfig
+    };
+}
+
+/**
+ * Creates a Vertex AI model configuration
+ * @param {Object} additionalConfig - Additional configuration to merge with base config
+ * @returns {Object} - Vertex AI model configuration
+ */
+function createVertexAIModelConfig(additionalConfig = {}) {
+    return {
+        ...baseVertexAIConfig,
         ...additionalConfig
     };
 }
@@ -235,6 +303,21 @@ export const portkeyConfig = {
     'llama-3.3-70b-instruct': createScalewayModelConfig(),
     'llama-3.1-8b-instruct': createScalewayModelConfig(),
     'deepseek-r1-distill-llama-70b': createScalewayModelConfig(),
+    
+    // OpenRouter model configurations
+    'anthropic/claude-3-sonnet': createOpenRouterModelConfig(),
+    'deepseek/deepseek-chat': createOpenRouterModelConfig(),
+    'qwen/qwen1.5-72b': createOpenRouterModelConfig(),
+    'qwen/qwen1.5-72b-chat': createOpenRouterModelConfig(),
+    'meta-llama/llama-3-70b-chat': createOpenRouterModelConfig(),
+    'mistralai/mistral-7b-instruct': createOpenRouterModelConfig(),
+    'mistralai/mistral-large': createOpenRouterModelConfig(),
+    'meta-llama/llama-3-8b-chat': createOpenRouterModelConfig(),
+    'anthropic/claude-3.5-haiku-20241022': createOpenRouterModelConfig(),
+    
+    // Vertex AI model configurations
+    'gemini-2.0-flash-lite-preview-02-05': createVertexAIModelConfig(),
+    'gemini-2.0-flash-thinking-exp-01-21': createVertexAIModelConfig()
 };
 
 /**
@@ -271,6 +354,26 @@ logProviderConfig(
 logProviderConfig(
     'Scaleway',
     ([_, config]) => config.provider === 'openai' && config['custom-host']?.includes('scaleway'),
+    config => ({
+        ...config,
+        authKey: config.authKey ? '***' : undefined
+    })
+);
+
+// Log OpenRouter configuration
+logProviderConfig(
+    'OpenRouter',
+    ([_, config]) => config.provider === 'openai' && config['custom-host']?.includes('openrouter'),
+    config => ({
+        ...config,
+        authKey: config.authKey ? '***' : undefined
+    })
+);
+
+// Log Vertex AI configuration
+logProviderConfig(
+    'Vertex AI',
+    ([_, config]) => config.provider === 'vertex-ai',
     config => ({
         ...config,
         authKey: config.authKey ? '***' : undefined
