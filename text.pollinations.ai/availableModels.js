@@ -185,16 +185,16 @@ export const availableModels = [
         maxTokens: 7168, // Set reasonable limit for the 8B model
         handler: generateTextPortkey
     },
-    {
-        name: 'llamaguard',
-        type: 'safety',
-        censored: false,
-        description: 'Llamaguard 7B AWQ',
-        baseModel: false,
-        provider: 'cloudflare',
-        maxTokens: 4000, // Set max tokens below the model's context window of 4096
-        handler: generateTextPortkey
-    },
+    // {
+    //     name: 'llamaguard',
+    //     type: 'safety',
+    //     censored: false,
+    //     description: 'Llamaguard 7B AWQ',
+    //     baseModel: false,
+    //     provider: 'cloudflare',
+    //     maxTokens: 4000, // Set max tokens below the model's context window of 4096
+    //     handler: generateTextPortkey
+    // },
     {
         name: 'gemini',
         type: 'chat',
@@ -202,6 +202,7 @@ export const availableModels = [
         description: 'Gemini 2.0 Flash',
         baseModel: true,
         provider: 'google',
+        vision: true,
         handler: (messages, options) => generateTextPortkey(messages, {...options, model: 'gemini'})
     },
     {
@@ -211,6 +212,7 @@ export const availableModels = [
         description: 'Gemini 2.0 Flash Thinking',
         baseModel: true,
         provider: 'google',
+        vision: true,
         handler: (messages, options) => generateTextPortkey(messages, {...options, model: 'gemini-thinking'})
     },
     {
@@ -234,14 +236,6 @@ export const availableModels = [
         type: 'chat',
         censored: true,
         description: 'Sur AI Assistant',
-        baseModel: false,
-        handler: surOpenai
-    },
-    {
-        name: 'sur-mistral',
-        type: 'chat',
-        censored: true,
-        description: 'Sur AI Assistant (Mistral)',
         baseModel: false,
         handler: surMistral
     },

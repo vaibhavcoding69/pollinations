@@ -19,7 +19,7 @@ const MODEL_MAPPING = {
     'openai-reasoning': 'o3-mini', // Maps to portkeyConfig['o1-mini'],
     // 'openai-audio': 'gpt-4o-mini-audio-preview',
     'openai-audio': 'gpt-4o-audio-preview',
-    'gemini': 'gemini-2.0-flash-lite-preview-02-05',
+    'gemini': 'gemini-2.0-flash-exp',
     'gemini-thinking': 'gemini-2.0-flash-thinking-exp-01-21',
     // Cloudflare models
     'llama': '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
@@ -296,12 +296,12 @@ export const portkeyConfig = {
         'x-title': 'Pollinations.AI'
     }),
     // Google Vertex AI model configurations
-    'gemini-2.0-flash-lite-preview-02-05': () => ({
+    'gemini-2.0-flash-exp': () => ({
         provider: 'vertex-ai',
         authKey: googleCloudAuth.getToken, // Use the refreshable token
         'vertex-project-id': process.env.GCLOUD_PROJECT_ID,
         'vertex-region': 'us-central1',
-        'vertex-model-id': 'gemini-2.0-flash-lite-preview-02-05',
+        'vertex-model-id': 'gemini-2.0-flash-exp',
         'strict-openai-compliance': 'false'
     }),
     'gemini-2.0-flash-thinking-exp-01-21': () => ({
