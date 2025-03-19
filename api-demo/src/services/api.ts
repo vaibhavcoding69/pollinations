@@ -1,11 +1,29 @@
 import axios from 'axios';
 
-// Check if we should use local API endpoints
-const USE_LOCAL_API = process.env.REACT_APP_USE_LOCAL_API === 'true';
+// Configurable API settings
+export const ApiConfig = {
+  useLocalApi: false,
+  textPort: '16385',
+  imagePort: '16384'
+};
 
-// API Base URLs
-const TEXT_API_BASE = USE_LOCAL_API ? '/text-api' : 'https://text.pollinations.ai';
-const IMAGE_API_BASE = USE_LOCAL_API ? '/image-api' : 'https://image.pollinations.ai';
+// Function to get the appropriate base URLs based on current configuration
+export const getApiBaseUrls = () => {
+  if (ApiConfig.useLocalApi) {
+    return {
+      TEXT_API_BASE: `http://localhost:${ApiConfig.textPort}`,
+      IMAGE_API_BASE: `http://localhost:${ApiConfig.imagePort}`
+    };
+  } else {
+    return {
+      TEXT_API_BASE: 'https://text.pollinations.ai',
+      IMAGE_API_BASE: 'https://image.pollinations.ai'
+    };
+  }
+};
+
+// Get current API Base URLs
+const { TEXT_API_BASE, IMAGE_API_BASE } = getApiBaseUrls();
 
 // Define types for the API responses
 export interface TextModel {
@@ -31,12 +49,14 @@ export type ImageModel = string;
 
 // Function to fetch text models
 export const fetchTextModels = async (): Promise<TextModel[]> => {
+  const { TEXT_API_BASE } = getApiBaseUrls();
   const response = await axios.get(`${TEXT_API_BASE}/models`);
   return response.data;
 };
 
 // Function to fetch image models
 export const fetchImageModels = async (): Promise<string[]> => {
+  const { IMAGE_API_BASE } = getApiBaseUrls();
   const response = await axios.get(`${IMAGE_API_BASE}/models`);
   return response.data;
 };
@@ -88,6 +108,7 @@ export interface ImageParams {
 
 // Function to build text API URL
 export const buildTextApiUrl = (params: TextParams): string => {
+  const { TEXT_API_BASE } = getApiBaseUrls();
   const baseUrl = TEXT_API_BASE;
   const queryParams = new URLSearchParams();
   
@@ -108,6 +129,7 @@ export const buildTextApiUrl = (params: TextParams): string => {
 
 // Function to make POST request to text API
 export const makeTextPostRequest = async (params: TextPostParams) => {
+  const { TEXT_API_BASE } = getApiBaseUrls();
   const url = `${TEXT_API_BASE}/`;
   const response = await axios.post(url, params);
   return response.data;
@@ -115,6 +137,7 @@ export const makeTextPostRequest = async (params: TextPostParams) => {
 
 // Function to build image API URL
 export const buildImageApiUrl = (params: ImageParams): string => {
+  const { IMAGE_API_BASE } = getApiBaseUrls();
   const baseUrl = `${IMAGE_API_BASE}/prompt`;
   const queryParams = new URLSearchParams();
   

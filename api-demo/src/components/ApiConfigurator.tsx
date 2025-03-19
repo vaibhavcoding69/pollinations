@@ -56,13 +56,24 @@ import {
   makeTextPostRequest,
   Message,
   MessageContent,
-  TextPostParams
+  TextPostParams,
+  ApiConfig
 } from '../services/api';
 
 // Define endpoint options (keeping for backward compatibility)
 const endpoints = [
   { value: 'text', label: 'Text API' },
   { value: 'image', label: 'Image API' }
+];
+
+// Fallback models when the API is not available
+const FALLBACK_IMAGE_MODELS = [
+  'sd3',
+  'sdxl',
+  'kandinsky',
+  'dalle',
+  'pixart',
+  'deepfloyd'
 ];
 
 // Helper function to extract unique modalities from models
@@ -133,9 +144,6 @@ const a11yProps = (index: number) => {
     'aria-controls': `api-tabpanel-${index}`,
   };
 };
-
-// Check if we're using local API endpoints
-const isUsingLocalApi = process.env.REACT_APP_USE_LOCAL_API === 'true';
 
 // Configure axios defaults
 axios.defaults.timeout = 30000; // 30 seconds timeout
@@ -248,57 +256,11 @@ const ApiConfigurator: React.FC = () => {
   // State for image URLs in messages
   const [imageUrls, setImageUrls] = useState<{[index: number]: string}>({});
   
-  // Fetch models based on selected endpoint
+  // State for API mode (local or production)
+  const [useLocalApi, setUseLocalApi] = useState<boolean>(false);
+  
+  // Updated useEffect for endpoint changes
   useEffect(() => {
-    const fetchModels = async () => {
-      setLoading(true);
-      setModelsError(null);
-      
-      try {
-        if (endpoint === 'text') {
-          const models = await fetchTextModels();
-          setTextModels(models);
-          setFilteredTextModels(models); // Initially, show all models
-          
-          // Extract available modalities for filters
-          const inputModalities = extractUniqueModalities(models, 'input');
-          const outputModalities = extractUniqueModalities(models, 'output');
-          
-          // Find modalities supported by all models
-          const universalInputMods = findUniversalModalities(models, 'input');
-          const universalOutputMods = findUniversalModalities(models, 'output');
-          
-          setUniversalInputModalities(universalInputMods);
-          setUniversalOutputModalities(universalOutputMods);
-          
-          setAvailableInputModalities(inputModalities);
-          setAvailableOutputModalities(outputModalities);
-          
-          // Select all modalities by default
-          setSelectedInputModalities(inputModalities);
-          setSelectedOutputModalities(outputModalities);
-          
-          if (models.length > 0) {
-            setSelectedModel(models[0].name);
-            setSelectedModelDetails(models[0]);
-          }
-        } else {
-          const models = await fetchImageModels();
-          setImageModels(models);
-          if (models.length > 0) {
-            setSelectedModel(models[0]);
-            setSelectedModelDetails(null); // Clear model details for image models
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching models:', error);
-        setModelsError(`Failed to fetch ${endpoint} models. Please try again later.`);
-        showNotification(`Failed to fetch ${endpoint} models`, 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchModels();
     
     // Clear responses when changing endpoints
@@ -307,11 +269,94 @@ const ApiConfigurator: React.FC = () => {
     setResponseError(null);
   }, [endpoint]);
   
+  // Update ApiConfig when local mode changes
+  useEffect(() => {
+    ApiConfig.useLocalApi = useLocalApi;
+    
+    // Clear responses when changing API mode
+    setResponse(null);
+    setImageResponse(null);
+    setResponseError(null);
+    
+    // Refetch models when API mode changes
+    if (endpoint) {
+      const timer = setTimeout(() => {
+        fetchModels();
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [useLocalApi]);
+  
+  // Fetch models based on selected endpoint
+  const fetchModels = async () => {
+    setLoading(true);
+    setModelsError(null);
+    
+    try {
+      if (endpoint === 'text') {
+        const models = await fetchTextModels();
+        setTextModels(models);
+        setFilteredTextModels(models); // Initially, show all models
+        
+        // Extract available modalities for filters
+        const inputModalities = extractUniqueModalities(models, 'input');
+        const outputModalities = extractUniqueModalities(models, 'output');
+        
+        // Find modalities supported by all models
+        const universalInputMods = findUniversalModalities(models, 'input');
+        const universalOutputMods = findUniversalModalities(models, 'output');
+        
+        setUniversalInputModalities(universalInputMods);
+        setUniversalOutputModalities(universalOutputMods);
+        
+        setAvailableInputModalities(inputModalities);
+        setAvailableOutputModalities(outputModalities);
+        
+        // Select all modalities by default
+        setSelectedInputModalities(inputModalities);
+        setSelectedOutputModalities(outputModalities);
+        
+        if (models.length > 0) {
+          setSelectedModel(models[0].name);
+          setSelectedModelDetails(models[0]);
+        }
+      } else {
+        try {
+          const models = await fetchImageModels();
+          setImageModels(models);
+          if (models.length > 0) {
+            setSelectedModel(models[0]);
+            setSelectedModelDetails(null); // Clear model details for image models
+          }
+        } catch (error) {
+          console.error('Error fetching image models:', error);
+          // Use fallback image models instead of showing an error
+          setImageModels(FALLBACK_IMAGE_MODELS);
+          setSelectedModel(FALLBACK_IMAGE_MODELS[0]);
+          
+          // Show a warning notification instead of an error
+          showNotification('Unable to fetch image models. Using fallback models for preview.', 'warning');
+          setModelsError('Could not connect to Image API. Using fallback models.');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching models:', error);
+      setModelsError(`Failed to fetch ${endpoint} models. Please try again later.`);
+      showNotification(`Failed to fetch ${endpoint} models`, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   // Handle tab change
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
     // Update endpoint based on tab
     setEndpoint(newValue === 0 ? 'text' : 'image');
+    
+    // Reset selected model when switching tabs to avoid out-of-range value errors
+    setSelectedModel('');
   };
   
   // Filter text models based on selected modalities
@@ -386,13 +431,13 @@ const ApiConfigurator: React.FC = () => {
       // When using POST method, we don't build a URL but a representation of the request body
       if (endpoint === 'text' && messages.length > 0) {
         // Just set a placeholder for the apiUrl display
-        setApiUrl(`${isUsingLocalApi ? '/text-api' : 'https://text.pollinations.ai'} (POST request with ${messages.length} messages)`);
+        setApiUrl(`${useLocalApi ? `http://localhost:${ApiConfig.textPort}` : 'https://text.pollinations.ai'} (POST request with ${messages.length} messages)`);
       }
     }
   }, [
     endpoint, prompt, selectedModel, seed, width, height, 
     nologo, privateMode, enhance, safe, json, system, voice,
-    textApiMethod, messages
+    textApiMethod, messages, useLocalApi
   ]);
   
   // Handle endpoint change
@@ -508,16 +553,8 @@ const ApiConfigurator: React.FC = () => {
         return `Server error: ${error.response.status} ${error.response.statusText}`;
       } else if (error.request) {
         // The request was made but no response was received
-        if (isUsingLocalApi) {
-          return `No response received from local ${endpoint} API server. Is the server running on the expected port? Check .env configuration.`;
-        }
         return 'No response received from server. Please check your internet connection.';
       }
-    }
-    
-    // For local API connections, show more specific error messages
-    if (isUsingLocalApi && error.message && error.message.includes('Network Error')) {
-      return `Failed to connect to local ${endpoint} API server. Ensure it's running on the correct port as specified in .env file.`;
     }
     
     // Default error message
@@ -546,6 +583,9 @@ const ApiConfigurator: React.FC = () => {
         } else {
           setMessages([{ role: 'user', content: prompt }]);
         }
+        
+        // Clear any previous image URLs
+        setImageUrls({});
       }
     }
   };
@@ -601,47 +641,119 @@ const ApiConfigurator: React.FC = () => {
     setMessages(newMessages);
   };
   
-  // Add an image to a message
-  const addImageToMessage = (index: number, imageUrl: string) => {
-    const newMessages = [...messages];
-    let contentArray: MessageContent[];
-    
-    // If the content is a string, convert it to an array with the existing text
-    if (typeof newMessages[index].content === 'string') {
-      const textContent = newMessages[index].content as string;
-      contentArray = [
-        { type: 'text', text: textContent },
-        { type: 'image_url', image_url: { url: imageUrl } }
-      ];
-    } else {
-      // Content is already an array, add the image to it
-      contentArray = [...(newMessages[index].content as MessageContent[])];
-      
-      // Check if image is already present; if so, update it
-      const imageIndex = contentArray.findIndex(item => item.type === 'image_url');
-      if (imageIndex >= 0) {
-        contentArray[imageIndex] = { type: 'image_url', image_url: { url: imageUrl } };
-      } else {
-        contentArray.push({ type: 'image_url', image_url: { url: imageUrl } });
-      }
-    }
-    
-    newMessages[index] = { ...newMessages[index], content: contentArray };
-    setMessages(newMessages);
-    
-    // Store the image URL for the UI
-    setImageUrls({ ...imageUrls, [index]: imageUrl });
-  };
-  
   // Handle updating an image URL
   const handleImageUrlChange = (index: number, url: string) => {
+    // Store the URL in the imageUrls state
     setImageUrls({ ...imageUrls, [index]: url });
+    
+    // If it's a data URL or complete URL, add it to the message immediately
+    if (url && (url.startsWith('data:') || url.startsWith('http'))) {
+      // Create proper structure for the message with image
+      const newMessages = [...messages];
+      let messageContent: MessageContent[];
+      
+      // Check if there's existing text content
+      if (typeof newMessages[index].content === 'string') {
+        // If it's a string, convert to a content array with text and image
+        const textContent = newMessages[index].content as string;
+        messageContent = [
+          { type: 'text', text: textContent },
+          { type: 'image_url', image_url: { url } }
+        ];
+      } else if (Array.isArray(newMessages[index].content)) {
+        // If it's already an array, make a copy
+        messageContent = [...(newMessages[index].content as MessageContent[])];
+        
+        // Update or add the image content
+        const imageIndex = messageContent.findIndex(item => item.type === 'image_url');
+        if (imageIndex >= 0) {
+          messageContent[imageIndex] = { type: 'image_url', image_url: { url } };
+        } else {
+          messageContent.push({ type: 'image_url', image_url: { url } });
+        }
+      } else {
+        // Fallback - just create new content array with image
+        messageContent = [
+          { type: 'text', text: '' },
+          { type: 'image_url', image_url: { url } }
+        ];
+      }
+      
+      // Update the message with the new content structure
+      newMessages[index] = {
+        ...newMessages[index],
+        content: messageContent
+      };
+      
+      setMessages(newMessages);
+      console.log("Updated messages with image:", newMessages[index]);
+    }
+  };
+  
+  // Function to transform Google Drive links or data URLs to usable image URLs
+  const transformGoogleDriveUrl = (url: string): string => {
+    // If it's already a data URL, return as is
+    if (url.startsWith('data:')) {
+      return url;
+    }
+    
+    // Check if it's a Google Drive URL
+    if (url.match(/drive\.google\.com\/file\/d\/([^/]+)/)) {
+      // Extract the file ID
+      const fileId = url.match(/drive\.google\.com\/file\/d\/([^/]+)/)![1];
+      // Return direct link format
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+    
+    // No transformation needed for other URLs
+    return url;
   };
   
   // Confirm adding an image to a message
   const confirmAddImage = (index: number) => {
     if (imageUrls[index]) {
-      addImageToMessage(index, imageUrls[index]);
+      // Transform Google Drive URLs to direct image URLs
+      const transformedUrl = transformGoogleDriveUrl(imageUrls[index]);
+      
+      // Create proper structure for the message with image
+      const newMessages = [...messages];
+      let messageContent: MessageContent[];
+      
+      // Check if there's existing text content
+      if (typeof newMessages[index].content === 'string') {
+        // If it's a string, convert to a content array with text and image
+        const textContent = newMessages[index].content as string;
+        messageContent = [
+          { type: 'text', text: textContent },
+          { type: 'image_url', image_url: { url: transformedUrl } }
+        ];
+      } else if (Array.isArray(newMessages[index].content)) {
+        // If it's already an array, make a copy
+        messageContent = [...(newMessages[index].content as MessageContent[])];
+        
+        // Update or add the image content
+        const imageIndex = messageContent.findIndex(item => item.type === 'image_url');
+        if (imageIndex >= 0) {
+          messageContent[imageIndex] = { type: 'image_url', image_url: { url: transformedUrl } };
+        } else {
+          messageContent.push({ type: 'image_url', image_url: { url: transformedUrl } });
+        }
+      } else {
+        // Fallback - just create new content array with image
+        messageContent = [
+          { type: 'text', text: '' },
+          { type: 'image_url', image_url: { url: transformedUrl } }
+        ];
+      }
+      
+      // Update the message with the new content structure
+      newMessages[index] = {
+        ...newMessages[index],
+        content: messageContent
+      };
+      
+      setMessages(newMessages);
+      console.log("Confirmed image in message:", newMessages[index]);
     }
   };
   
@@ -651,7 +763,7 @@ const ApiConfigurator: React.FC = () => {
     if (typeof message.content === 'string') return false;
     
     const contentArray = message.content as MessageContent[];
-    return contentArray.some(item => 'image_url' in item);
+    return contentArray.some(item => item.type === 'image_url');
   };
   
   // Fetch the response
@@ -675,9 +787,35 @@ const ApiConfigurator: React.FC = () => {
           const result = await axios.get(apiUrl);
           setResponse(result.data);
         } else {
-          // For POST method, use the structured messages
+          // For POST method, ensure images are properly attached in message content
+          
+          // Prepare a proper payload with correct structure
+          const preparedMessages = messages.map(message => {
+            // If it's already properly structured or doesn't have an image, return as is
+            if (typeof message.content === 'string' || 
+                (Array.isArray(message.content) && !message.content.some(item => item.type === 'image_url'))) {
+              return message;
+            }
+            
+            // Ensure the content array follows OpenAI format
+            const contentArray = message.content as MessageContent[];
+            return {
+              role: message.role,
+              content: contentArray.map(item => {
+                // Make sure image_url objects are properly formatted
+                if (item.type === 'image_url') {
+                  return {
+                    type: 'image_url' as const,  // Use const assertion to help TypeScript
+                    image_url: { url: item.image_url.url }
+                  };
+                }
+                return item;
+              }) as MessageContent[]  // Explicitly cast back to MessageContent[]
+            };
+          }) as Message[];  // Ensure final array type is Message[]
+          
           const postParams: TextPostParams = {
-            messages,
+            messages: preparedMessages,
             model: selectedModel,
             seed,
             jsonMode: json,
@@ -685,12 +823,22 @@ const ApiConfigurator: React.FC = () => {
             voice: voice || undefined
           };
           
+          // Log the prepared request for debugging
+          console.log('Sending POST request with payload:', JSON.stringify(postParams, null, 2));
+          
           const result = await makeTextPostRequest(postParams);
           setResponse(result);
         }
         
         showNotification('Text response generated successfully!');
       } else {
+        // Check if we're using fallback models (which means the API is not available)
+        if (modelsError && FALLBACK_IMAGE_MODELS.includes(selectedModel)) {
+          setResponseError('Cannot generate image: Unable to connect to Image API. Please try again later.');
+          showNotification('Unable to connect to Image API', 'error');
+          return;
+        }
+        
         // For image API, just set the image URL
         setResponse(null);
         setImageResponse(apiUrl);
@@ -722,72 +870,166 @@ const ApiConfigurator: React.FC = () => {
     return <>{response}</>; // Simple string rendering
   };
   
+  // Update the preview of the payload in the header tooltip
+  const getPayloadPreview = () => {
+    return JSON.stringify({
+      model: selectedModel,
+      messages: messages.map(m => {
+        // If content is a string, just return it as is
+        if (typeof m.content === 'string') {
+          return {
+            role: m.role,
+            content: m.content
+          };
+        }
+        
+        // If content is an array (multimodal), format it properly for display
+        return {
+          role: m.role,
+          content: m.content
+        };
+      }),
+      ...(seed !== undefined && { seed }),
+      ...(voice && { voice }),
+      ...(json && { jsonMode: true }),
+      ...(privateMode && { private: true })
+    }, null, 2);
+  };
+  
   return (
     <Container maxWidth="md">
-      <Box sx={{ my: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ flexGrow: 1 }}>
-            Pollinations.AI API URL Configurator
+      {/* Sticky Header with API URL */}
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          mb: 3,
+          p: 2,
+          borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+          backgroundColor: 'white',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 'medium', display: 'flex', alignItems: 'center' }}>
+            Pollinations.AI API
+            <Tooltip title={useLocalApi ? "Using Local API" : "Using Production API"}>
+              <Chip 
+                icon={useLocalApi ? <StorageIcon /> : <CloudIcon />} 
+                label={useLocalApi ? "Local" : "Production"}
+                color={useLocalApi ? "success" : "primary"}
+                size="small"
+                sx={{ ml: 1.5 }}
+                onClick={() => setUseLocalApi(!useLocalApi)}
+              />
+            </Tooltip>
           </Typography>
-          <Tooltip title={isUsingLocalApi ? "Using Local API" : "Using Production API"}>
-            <Chip 
-              icon={isUsingLocalApi ? <StorageIcon /> : <CloudIcon />} 
-              label={isUsingLocalApi ? "Local" : "Production"}
-              color={isUsingLocalApi ? "success" : "primary"}
-              size="small"
-            />
-          </Tooltip>
+          
+          {/* API URL display in header - right side */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            flexGrow: 1, 
+            ml: 2, 
+            maxWidth: { xs: '100%', sm: '60%' }
+          }}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 1, 
+                flexGrow: 1,
+                backgroundColor: 'rgba(0, 0, 0, 0.03)',
+                fontFamily: 'monospace',
+                fontSize: '0.7rem',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                border: '1px solid rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              {endpoint === 'text' && textApiMethod === 'POST' ? (
+                <Tooltip 
+                  title={
+                    <Box sx={{ fontFamily: 'monospace', fontSize: '0.7rem', maxWidth: '400px', overflowWrap: 'break-word' }}>
+                      {getPayloadPreview()}
+                    </Box>
+                  } 
+                  arrow
+                >
+                  <span>POST {useLocalApi ? `http://localhost:${ApiConfig.textPort}` : 'https://text.pollinations.ai'} (Hover for payload preview)</span>
+                </Tooltip>
+              ) : (
+                apiUrl || 'Configure endpoint, model, and request parameters to generate a URL'
+              )}
+            </Paper>
+            {apiUrl && (
+              <Tooltip title="Copy URL">
+                <IconButton 
+                  onClick={handleCopyUrl}
+                  size="small"
+                  aria-label="copy"
+                  color="primary"
+                  sx={{ ml: 0.5 }}
+                >
+                  <ContentCopyIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
         </Box>
+      </Paper>
+      
+      <Box sx={{ my: 4 }}>
+        {modelsError ? (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {modelsError}
+          </Alert>
+        ) : null}
         
-        <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
-          {modelsError ? (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {modelsError}
-            </Alert>
-          ) : null}
+        {/* Section 1: ENDPOINT */}
+        <Paper elevation={3} sx={{ p: 3, mb: 3, borderTop: '4px solid #3f51b5' }}>
+          <Typography variant="h6" gutterBottom sx={{ color: '#3f51b5', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+            1. Select Endpoint
+          </Typography>
           
           {/* API Type Tabs */}
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Box sx={{ mt: 2 }}>
             <Tabs 
               value={tabValue} 
               onChange={handleTabChange} 
               aria-label="API Configurator tabs"
-              centered
+              variant="fullWidth"
+              textColor="primary"
+              indicatorColor="primary"
+              sx={{ '& .MuiTab-root': { color: 'rgba(63, 81, 181, 0.7)' }, '& .Mui-selected': { color: '#3f51b5' } }}
             >
-              <Tab icon={<TextFormatIcon />}  {...a11yProps(0)} />
-              <Tab icon={<ImageIcon />}  {...a11yProps(1)} />
+              <Tab icon={<TextFormatIcon />} label="Text API" {...a11yProps(0)} />
+              <Tab icon={<ImageIcon />} label="Image API" {...a11yProps(1)} />
             </Tabs>
           </Box>
+        </Paper>
+        
+        {/* Section 2: MODEL */}
+        <Paper elevation={3} sx={{ p: 3, mb: 3, borderTop: '4px solid #4caf50' }}>
+          <Typography variant="h6" gutterBottom sx={{ color: '#4caf50', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+            2. Select Model
+          </Typography>
           
-          {/* Text API Content */}
-          <TabPanel value={tabValue} index={0}>
-            <Grid container spacing={3}>
-              {/* API Method Selection */}
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-                  <ToggleButtonGroup
-                    value={textApiMethod}
-                    exclusive
-                    onChange={handleApiMethodChange}
-                    aria-label="API method"
-                  >
-                    <ToggleButton value="GET" aria-label="GET method">
-                      <GetAppIcon sx={{ mr: 1 }} />
-                      GET
-                    </ToggleButton>
-                    <ToggleButton value="POST" aria-label="POST method">
-                      <PostAddIcon sx={{ mr: 1 }} />
-                      POST
-                    </ToggleButton>
-                  </ToggleButtonGroup>
-                </Box>
-              </Grid>
+          {/* Modality Filters - Only for Text API - Moved from Endpoint section */}
+          {tabValue === 0 && (
+            <Box sx={{ mb: 3, pt: 2, pb: 2, backgroundColor: 'rgba(76, 175, 80, 0.05)', borderRadius: 1, px: 2 }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ color: '#4caf50', fontWeight: 'medium' }}>
+                Filter by Modality
+              </Typography>
               
-              {/* Modality Filters - Side by side in one row with right alignment for output */}
-              <Grid container item xs={12} sx={{ mb: 2 }}>
+              <Grid container spacing={2}>
                 <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Input Modalities
+                  <Typography variant="caption" sx={{ mb: 1, color: 'rgba(76, 175, 80, 0.8)' }}>
+                    Input
                   </Typography>
                   <Box sx={{ overflowX: 'auto' }}>
                     <ToggleButtonGroup
@@ -795,27 +1037,33 @@ const ApiConfigurator: React.FC = () => {
                       onChange={handleInputModalityChange}
                       aria-label="input modalities"
                       size="small"
-                      color="primary"
+                      color="success"
                       sx={{ flexWrap: 'wrap', mb: 1 }}
                       exclusive={false}
                     >
                       {availableInputModalities.map((modality) => (
-                        <ToggleButton 
-                          key={modality} 
-                          value={modality}
-                          sx={{ mr: 0.5, mb: 0.5, textTransform: 'none' }}
-                          disabled={universalInputModalities.includes(modality)}
+                        <Tooltip 
+                          key={modality}
+                          title={universalInputModalities.includes(modality) ? "This modality is always available" : ""}
                         >
-                          {modality}
-                        </ToggleButton>
+                          <span>
+                            <ToggleButton 
+                              value={modality}
+                              sx={{ mr: 0.5, mb: 0.5, textTransform: 'none', borderColor: 'rgba(76, 175, 80, 0.3)' }}
+                              disabled={universalInputModalities.includes(modality)}
+                            >
+                              {modality}
+                            </ToggleButton>
+                          </span>
+                        </Tooltip>
                       ))}
                     </ToggleButtonGroup>
                   </Box>
                 </Grid>
                 
                 <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, textAlign: 'right', width: '100%' }}>
-                    Output Modalities
+                  <Typography variant="caption" sx={{ mb: 1, textAlign: 'right', width: '100%', color: 'rgba(76, 175, 80, 0.8)' }}>
+                    Output
                   </Typography>
                   <Box sx={{ overflowX: 'auto', width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
                     <ToggleButtonGroup
@@ -823,376 +1071,167 @@ const ApiConfigurator: React.FC = () => {
                       onChange={handleOutputModalityChange}
                       aria-label="output modalities"
                       size="small"
-                      color="primary"
+                      color="success"
                       sx={{ flexWrap: 'wrap', mb: 1 }}
                       exclusive={false}
                     >
                       {availableOutputModalities.map((modality) => (
-                        <ToggleButton 
-                          key={modality} 
-                          value={modality}
-                          sx={{ mr: 0.5, mb: 0.5, textTransform: 'none' }}
-                          disabled={universalOutputModalities.includes(modality)}
+                        <Tooltip 
+                          key={modality}
+                          title={universalOutputModalities.includes(modality) ? "This modality is always available" : ""}
                         >
-                          {modality}
-                        </ToggleButton>
+                          <span>
+                            <ToggleButton 
+                              value={modality}
+                              sx={{ mr: 0.5, mb: 0.5, textTransform: 'none', borderColor: 'rgba(76, 175, 80, 0.3)' }}
+                              disabled={universalOutputModalities.includes(modality)}
+                            >
+                              {modality}
+                            </ToggleButton>
+                          </span>
+                        </Tooltip>
                       ))}
                     </ToggleButtonGroup>
                   </Box>
                 </Grid>
               </Grid>
-              
-              {/* Model Selection */}
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-                    Model Selection
-                  </Typography>
-                  <Chip 
-                    label={`${filteredTextModels.length} of ${textModels.length} models`}
-                    size="small"
-                    color={filteredTextModels.length < textModels.length ? "primary" : "default"}
-                    variant="outlined"
-                  />
-                </Box>
-                <FormControl fullWidth>
-                  <Select
-                    labelId="model-select-label"
-                    id="model-select"
-                    value={selectedModel}
-                    onChange={handleModelChange}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <MenuItem value="">
-                        <CircularProgress size={20} />
-                      </MenuItem>
-                    ) : (
-                      filteredTextModels.map((model) => (
-                        <MenuItem key={model.name} value={model.name}>
-                          {model.name} - {model.description}
-                        </MenuItem>
-                      ))
-                    )}
-                  </Select>
-                </FormControl>
-                
-                {/* Display model properties for text models */}
-                {selectedModelDetails && (
-                  <ModelProperties model={selectedModelDetails} />
-                )}
-              </Grid>
-              
-              {/* GET Method UI */}
-              {textApiMethod === 'GET' && (
-                <>
-                  {/* Prompt */}
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Prompt"
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                      multiline
-                      rows={2}
-                      required
-                    />
-                  </Grid>
-                  
-                  {/* Seed */}
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Seed (optional)"
-                      type="number"
-                      value={seed === undefined ? '' : seed}
-                      onChange={(e) => setSeed(e.target.value ? Number(e.target.value) : undefined)}
-                    />
-                  </Grid>
-                  
-                  {/* Text-specific parameters */}
-                  <Grid item xs={12} sm={6}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={json}
-                          onChange={(e) => setJson(e.target.checked)}
-                        />
-                      }
-                      label="JSON Response"
-                    />
-                  </Grid>
-                  
-                  <Grid item xs={12} sm={6}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={privateMode}
-                          onChange={(e) => setPrivateMode(e.target.checked)}
-                        />
-                      }
-                      label="Private"
-                    />
-                  </Grid>
-                  
-                  {/* Audio voice selection - only visible for models with audio capability */}
-                  {selectedModelDetails?.audio && selectedModelDetails?.voices && selectedModelDetails.voices.length > 0 && (
-                    <Grid item xs={12}>
-                      <FormControl fullWidth>
-                        <InputLabel id="voice-select-label">Voice</InputLabel>
-                        <Select
-                          labelId="voice-select-label"
-                          id="voice-select"
-                          value={voice}
-                          label="Voice"
-                          onChange={(e) => setVoice(e.target.value)}
-                        >
-                          {selectedModelDetails.voices.map((voiceOption) => (
-                            <MenuItem key={voiceOption} value={voiceOption}>
-                              {voiceOption}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  )}
-                  
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="System Prompt (optional)"
-                      value={system}
-                      onChange={(e) => setSystem(e.target.value)}
-                      multiline
-                      rows={2}
-                    />
-                  </Grid>
-                </>
-              )}
-              
-              {/* POST Method UI */}
-              {textApiMethod === 'POST' && (
-                <Grid item xs={12}>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom>
-                      Messages
-                    </Typography>
-                    
-                    {messages.map((message, index) => (
-                      <Card 
-                        key={index} 
-                        sx={{ 
-                          mb: 2,
-                          borderLeft: `4px solid ${
-                            message.role === 'system' 
-                              ? 'purple' 
-                              : message.role === 'user' 
-                                ? 'blue'
-                                : 'green'
-                          }`
-                        }}
-                      >
-                        <CardContent>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                            <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-                              {message.role.charAt(0).toUpperCase() + message.role.slice(1)}
-                            </Typography>
-                            <ButtonGroup size="small">
-                              {/* Show image button for user messages if model supports vision */}
-                              {message.role === 'user' && selectedModelDetails?.vision && (
-                                <Tooltip title="Add Image">
-                                  <Button
-                                    variant="outlined"
-                                    onClick={() => {
-                                      const defaultUrl = imageUrls[index] || '';
-                                      const url = window.prompt('Enter image URL:', defaultUrl);
-                                      if (url) {
-                                        handleImageUrlChange(index, url);
-                                        confirmAddImage(index);
-                                      }
-                                    }}
-                                  >
-                                    <PhotoIcon fontSize="small" />
-                                  </Button>
-                                </Tooltip>
-                              )}
-                              <Tooltip title="Remove Message">
-                                <Button
-                                  color="error"
-                                  variant="outlined"
-                                  onClick={() => removeMessage(index)}
-                                  disabled={messages.length <= 1}
-                                >
-                                  <DeleteIcon fontSize="small" />
-                                </Button>
-                              </Tooltip>
-                            </ButtonGroup>
-                          </Box>
-                          
-                          {/* Render image preview if there is one */}
-                          {messageHasImage(index) && (
-                            <Box 
-                              sx={{ 
-                                width: '100%', 
-                                textAlign: 'center', 
-                                mb: 2, 
-                                p: 1,
-                                border: '1px dashed grey',
-                                borderRadius: 1
-                              }}
-                            >
-                              <Typography variant="caption" display="block" gutterBottom>
-                                Image Attached
-                              </Typography>
-                              {imageUrls[index] && (
-                                <img 
-                                  src={imageUrls[index]} 
-                                  alt="Attached" 
-                                  style={{ maxWidth: '100%', maxHeight: '200px' }} 
-                                  onError={(e) => {
-                                    e.currentTarget.src = 'https://via.placeholder.com/400x200?text=Image+Load+Error';
-                                  }}
-                                />
-                              )}
-                            </Box>
-                          )}
-                          
-                          <TextField
-                            fullWidth
-                            multiline
-                            rows={2}
-                            placeholder={`Enter ${message.role} message...`}
-                            value={
-                              typeof message.content === 'string' 
-                                ? message.content
-                                : Array.isArray(message.content)
-                                  ? (message.content.find(c => c.type === 'text') as { type: 'text', text: string })?.text || ''
-                                  : ''
-                            }
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                              updateMessage(index, e.target.value, !!(typeof message.content !== 'string'))
-                            }
-                          />
-                        </CardContent>
-                      </Card>
-                    ))}
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                      <ButtonGroup variant="outlined">
-                        <Button 
-                          startIcon={<AddIcon />}
-                          onClick={() => addMessage('system')}
-                        >
-                          System
-                        </Button>
-                        <Button 
-                          startIcon={<AddIcon />}
-                          onClick={() => addMessage('user')}
-                        >
-                          User
-                        </Button>
-                        <Button 
-                          startIcon={<AddIcon />}
-                          onClick={() => addMessage('assistant')}
-                        >
-                          Assistant
-                        </Button>
-                      </ButtonGroup>
-                    </Box>
-                  </Box>
-                  
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={json}
-                            onChange={(e) => setJson(e.target.checked)}
-                          />
-                        }
-                        label="JSON Mode"
-                      />
-                    </Grid>
-                    
-                    <Grid item xs={12} sm={6}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={privateMode}
-                            onChange={(e) => setPrivateMode(e.target.checked)}
-                          />
-                        }
-                        label="Private"
-                      />
-                    </Grid>
-                    
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Seed (optional)"
-                        type="number"
-                        value={seed === undefined ? '' : seed}
-                        onChange={(e) => setSeed(e.target.value ? Number(e.target.value) : undefined)}
-                      />
-                    </Grid>
-                    
-                    {/* Audio voice selection - only visible for models with audio capability */}
-                    {selectedModelDetails?.audio && selectedModelDetails?.voices && selectedModelDetails.voices.length > 0 && (
-                      <Grid item xs={12}>
-                        <FormControl fullWidth>
-                          <InputLabel id="voice-select-label">Voice</InputLabel>
-                          <Select
-                            labelId="voice-select-label"
-                            id="voice-select"
-                            value={voice}
-                            label="Voice"
-                            onChange={(e) => setVoice(e.target.value)}
-                          >
-                            {selectedModelDetails.voices.map((voiceOption) => (
-                              <MenuItem key={voiceOption} value={voiceOption}>
-                                {voiceOption}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    )}
-                  </Grid>
-                </Grid>
-              )}
-            </Grid>
-          </TabPanel>
+            </Box>
+          )}
           
-          {/* Image API Content */}
-          <TabPanel value={tabValue} index={1}>
-            <Grid container spacing={3}>
-              {/* Model Selection */}
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id="model-select-label">Model</InputLabel>
-                  <Select
-                    labelId="model-select-label"
-                    id="model-select"
-                    value={selectedModel}
-                    label="Model"
-                    onChange={handleModelChange}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <MenuItem value="">
-                        <CircularProgress size={20} />
-                      </MenuItem>
-                    ) : (
-                      imageModels.map((model) => (
-                        <MenuItem key={model} value={model}>
-                          {model}
-                        </MenuItem>
-                      ))
-                    )}
-                  </Select>
-                </FormControl>
-              </Grid>
-              
+          <FormControl fullWidth sx={{ mt: 3 }}>
+            <InputLabel id="model-select-label" sx={{ color: 'rgba(76, 175, 80, 0.8)' }}>Model</InputLabel>
+            {tabValue === 0 ? (
+              <Select
+                id="model-select"
+                value={selectedModel}
+                onChange={handleModelChange}
+                disabled={loading}
+                label="Model"
+                displayEmpty
+                sx={{ 
+                  '& .MuiOutlinedInput-notchedOutline': { 
+                    borderColor: 'rgba(76, 175, 80, 0.5)' 
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#4caf50'
+                  }
+                }}
+                renderValue={(value) => {
+                  if (loading) return <CircularProgress size={20} />;
+                  if (!value) return <em>Select a model</em>;
+                  const model = textModels.find(m => m.name === value);
+                  return `${value} - ${model?.description || ''}`;
+                }}
+              >
+                {loading ? (
+                  <MenuItem value="">
+                    <CircularProgress size={20} />
+                  </MenuItem>
+                ) : (
+                  filteredTextModels.map((model) => (
+                    <MenuItem key={model.name} value={model.name}>
+                      {model.name} - {model.description}
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+            ) : (
+              <Select
+                id="model-select"
+                value={selectedModel}
+                onChange={handleModelChange}
+                disabled={loading}
+                displayEmpty
+                sx={{ 
+                  '& .MuiOutlinedInput-notchedOutline': { 
+                    borderColor: 'rgba(76, 175, 80, 0.5)' 
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#4caf50'
+                  }
+                }}
+                renderValue={(value) => {
+                  if (loading) return <CircularProgress size={20} />;
+                  if (!value) return <em>Select a model</em>;
+                  return value;
+                }}
+              >
+                {loading ? (
+                  <MenuItem value="">
+                    <CircularProgress size={20} />
+                  </MenuItem>
+                ) : (
+                  imageModels.map((model) => (
+                    <MenuItem key={model} value={model}>
+                      {model}
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+            )}
+          </FormControl>
+          
+          {/* Model count display - moved from section title to after select dropdown */}
+          {tabValue === 0 && (
+            <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+              <Chip 
+                label={`${filteredTextModels.length} of ${textModels.length} models`}
+                size="small"
+                color="success"
+                variant="outlined"
+              />
+            </Box>
+          )}
+          
+          {/* Display model properties for text models */}
+          {selectedModelDetails && tabValue === 0 && (
+            <Box sx={{ mt: 3, pt: 2, borderTop: '1px dashed rgba(76, 175, 80, 0.3)' }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ color: '#4caf50' }}>Model Properties</Typography>
+              <ModelProperties model={selectedModelDetails} />
+            </Box>
+          )}
+        </Paper>
+          
+        {/* Section 3: REQUEST */}
+        <Paper elevation={3} sx={{ p: 3, mb: 3, borderTop: '4px solid #ff9800' }}>
+          <Typography variant="h6" gutterBottom sx={{ color: '#ff9800', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+            3. Configure Request
+            
+            {/* Text API method selection - Moved to top of Configure Request section */}
+            {tabValue === 0 && (
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', flexGrow: 1 }}>
+                <ToggleButtonGroup
+                  value={textApiMethod}
+                  exclusive
+                  onChange={handleApiMethodChange}
+                  aria-label="API method"
+                  color="warning"
+                  size="small"
+                >
+                  <Tooltip title="Use GET method">
+                    <span>
+                      <ToggleButton value="GET" aria-label="GET method" sx={{ borderColor: 'rgba(255, 152, 0, 0.5)' }}>
+                        <GetAppIcon sx={{ mr: 1 }} />
+                        GET
+                      </ToggleButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="Use POST method">
+                    <span>
+                      <ToggleButton value="POST" aria-label="POST method" sx={{ borderColor: 'rgba(255, 152, 0, 0.5)' }}>
+                        <PostAddIcon sx={{ mr: 1 }} />
+                        POST
+                      </ToggleButton>
+                    </span>
+                  </Tooltip>
+                </ToggleButtonGroup>
+              </Box>
+            )}
+          </Typography>
+          
+          {/* Text API - GET method */}
+          {tabValue === 0 && textApiMethod === 'GET' && (
+            <Grid container spacing={3} sx={{ mt: 1 }}>
               {/* Prompt */}
               <Grid item xs={12}>
                 <TextField
@@ -1203,231 +1242,650 @@ const ApiConfigurator: React.FC = () => {
                   multiline
                   rows={2}
                   required
+                  placeholder="Enter your prompt here..."
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 152, 0, 0.5)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 152, 0, 0.7)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#ff9800',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 152, 0, 0.8)',
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: '#ff9800',
+                    },
+                  }}
                 />
               </Grid>
               
               {/* Seed */}
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Seed (optional)"
                   type="number"
                   value={seed === undefined ? '' : seed}
                   onChange={(e) => setSeed(e.target.value ? Number(e.target.value) : undefined)}
+                  helperText="For reproducible results"
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 152, 0, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#ff9800',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 152, 0, 0.8)',
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: '#ff9800',
+                    },
+                  }}
                 />
               </Grid>
               
-              {/* Image-specific parameters */}
+              {/* System prompt */}
               <Grid item xs={12} sm={6}>
-                <Typography id="width-slider" gutterBottom>
-                  Width: {width}
-                </Typography>
-                <Slider
-                  value={width}
-                  onChange={(e, newValue) => setWidth(newValue as number)}
-                  aria-labelledby="width-slider"
-                  min={256}
-                  max={2048}
-                  step={64}
-                  marks={[
-                    { value: 256, label: '256' },
-                    { value: 1024, label: '1024' },
-                    { value: 2048, label: '2048' },
-                  ]}
+                <TextField
+                  fullWidth
+                  label="System Prompt (optional)"
+                  value={system}
+                  onChange={(e) => setSystem(e.target.value)}
+                  helperText="Instructions for the model"
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 152, 0, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#ff9800',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 152, 0, 0.8)',
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: '#ff9800',
+                    },
+                  }}
                 />
               </Grid>
               
-              <Grid item xs={12} sm={6}>
-                <Typography id="height-slider" gutterBottom>
-                  Height: {height}
-                </Typography>
-                <Slider
-                  value={height}
-                  onChange={(e, newValue) => setHeight(newValue as number)}
-                  aria-labelledby="height-slider"
-                  min={256}
-                  max={2048}
-                  step={64}
-                  marks={[
-                    { value: 256, label: '256' },
-                    { value: 1024, label: '1024' },
-                    { value: 2048, label: '2048' },
-                  ]}
-                />
-              </Grid>
+              {/* Audio voice selection */}
+              {selectedModelDetails?.audio && selectedModelDetails?.voices && selectedModelDetails.voices.length > 0 && (
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 152, 0, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#ff9800',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 152, 0, 0.8)',
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: '#ff9800',
+                    },
+                  }}>
+                    <InputLabel id="voice-select-label">Voice</InputLabel>
+                    <Select
+                      labelId="voice-select-label"
+                      id="voice-select"
+                      value={voice}
+                      label="Voice"
+                      onChange={(e) => setVoice(e.target.value)}
+                    >
+                      {selectedModelDetails.voices.map((voiceOption) => (
+                        <MenuItem key={voiceOption} value={voiceOption}>
+                          {voiceOption}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              )}
               
-              <Grid item xs={12} sm={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={nologo}
-                      onChange={(e) => setNologo(e.target.checked)}
-                    />
-                  }
-                  label="No Logo"
-                />
-              </Grid>
-              
-              <Grid item xs={12} sm={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={privateMode}
-                      onChange={(e) => setPrivateMode(e.target.checked)}
-                    />
-                  }
-                  label="Private"
-                />
-              </Grid>
-              
-              <Grid item xs={12} sm={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={enhance}
-                      onChange={(e) => setEnhance(e.target.checked)}
-                    />
-                  }
-                  label="Enhance"
-                />
-              </Grid>
-              
-              <Grid item xs={12} sm={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={safe}
-                      onChange={(e) => setSafe(e.target.checked)}
-                    />
-                  }
-                  label="Safe"
-                />
+              {/* Additional options */}
+              <Grid item xs={12}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexWrap: 'wrap', 
+                  gap: 2, 
+                  p: 2, 
+                  background: 'rgba(255, 152, 0, 0.05)', 
+                  borderRadius: 1 
+                }}>
+                  <FormControlLabel
+                    control={<Switch checked={json} onChange={(e) => setJson(e.target.checked)} color="warning" />}
+                    label="JSON Response"
+                    sx={{ color: 'rgba(255, 152, 0, 0.8)' }}
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={privateMode} onChange={(e) => setPrivateMode(e.target.checked)} color="warning" />}
+                    label="Private"
+                    sx={{ color: 'rgba(255, 152, 0, 0.8)' }}
+                  />
+                </Box>
               </Grid>
             </Grid>
-          </TabPanel>
+          )}
           
-          {/* Generated API URL - Common for both tabs */}
-          <Box sx={{ mt: 4 }}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
-                    Generated API URL:
-                  </Typography>
-                  {apiUrl && (
-                    <Tooltip title="Copy URL">
-                      <IconButton 
-                        onClick={handleCopyUrl}
-                        size="small"
-                        aria-label="copy"
-                      >
-                        <ContentCopyIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  )}
+          {/* Text API - POST method */}
+          {tabValue === 0 && textApiMethod === 'POST' && (
+            <Box sx={{ mt: 2 }}>
+              {/* Messages */}
+              <Box sx={{ mb: 3 }}>
+                {messages.map((message, index) => (
+                  <Card 
+                    key={index} 
+                    sx={{ 
+                      mb: 2,
+                      borderLeft: `4px solid rgba(255, 152, 0, 0.7)`
+                    }}
+                  >
+                    <CardContent>
+                      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="subtitle2" sx={{ color: '#ff9800' }}>
+                          {message.role.charAt(0).toUpperCase() + message.role.slice(1)}
+                        </Typography>
+                        {index > 0 && (
+                          <IconButton 
+                            size="small" 
+                            onClick={() => removeMessage(index)}
+                            sx={{ color: 'rgba(255, 152, 0, 0.7)' }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Box>
+                      
+                      {/* Image input for user messages */}
+                      {message.role === 'user' && selectedModelDetails?.vision && (
+                        <Box sx={{ mb: 2 }}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            placeholder="Image URL (optional)"
+                            label="Image URL"
+                            value={imageUrls[index] || ''}
+                            onChange={(e) => {
+                              const url = e.target.value;
+                              handleImageUrlChange(index, url);
+                              if (url) {
+                                confirmAddImage(index);
+                              } else {
+                                // If URL is cleared, remove the image
+                                if (messageHasImage(index)) {
+                                  const newMessages = [...messages];
+                                  const textContent = typeof newMessages[index].content === 'string' 
+                                    ? newMessages[index].content 
+                                    : (newMessages[index].content as MessageContent[])
+                                        .find(c => c.type === 'text')
+                                        ? ((newMessages[index].content as MessageContent[])
+                                            .find(c => c.type === 'text') as { type: 'text', text: string }).text
+                                        : '';
+                                  
+                                  newMessages[index] = { 
+                                    ...newMessages[index], 
+                                    content: textContent 
+                                  };
+                                  setMessages(newMessages);
+                                }
+                              }
+                            }}
+                            sx={{ 
+                              mb: 1,
+                              '& .MuiOutlinedInput-root': {
+                                '& fieldset': {
+                                  borderColor: 'rgba(255, 152, 0, 0.5)',
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: '#ff9800',
+                                },
+                              },
+                              '& .MuiInputLabel-root': {
+                                color: 'rgba(255, 152, 0, 0.8)',
+                              },
+                              '& .MuiInputLabel-root.Mui-focused': {
+                                color: '#ff9800',
+                              },
+                            }}
+                          />
+                          
+                          {/* Image preview box */}
+                          <Box 
+                            sx={{ 
+                              width: '100%',
+                              textAlign: 'center',
+                              p: 1,
+                              border: '1px dashed rgba(255, 152, 0, 0.5)',
+                              borderRadius: 1,
+                              minHeight: '100px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              backgroundColor: 'rgba(255, 152, 0, 0.02)'
+                            }}
+                          >
+                            {imageUrls[index] ? (
+                              <img 
+                                src={transformGoogleDriveUrl(imageUrls[index])} 
+                                alt="Attached" 
+                                style={{ maxWidth: '100%', maxHeight: '200px' }} 
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLImageElement).setAttribute('data-error', 'true');
+                                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                  const parent = e.currentTarget.parentElement;
+                                  let errorMsg = parent?.querySelector('.error-message') as HTMLParagraphElement | null;
+                                  if (!errorMsg) {
+                                    errorMsg = document.createElement('p');
+                                    errorMsg.className = 'error-message';
+                                    errorMsg.style.color = '#f44336';
+                                    errorMsg.style.margin = '10px 0';
+                                    if (parent) parent.appendChild(errorMsg);
+                                  }
+                                  if (errorMsg) errorMsg.textContent = 'Invalid image URL';
+                                }}
+                                onLoad={(e) => {
+                                  (e.currentTarget as HTMLImageElement).removeAttribute('data-error');
+                                  (e.currentTarget as HTMLImageElement).style.display = 'block';
+                                  const parent = e.currentTarget.parentElement;
+                                  const errorMsg = parent?.querySelector('.error-message');
+                                  if (errorMsg) errorMsg.remove();
+                                }}
+                              />
+                            ) : (
+                              <Typography variant="caption" color="text.secondary">
+                                No image attached
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      )}
+                      
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={2}
+                        placeholder={`Enter ${message.role} message...`}
+                        value={
+                          typeof message.content === 'string' 
+                            ? message.content
+                            : Array.isArray(message.content)
+                              ? (message.content.find(c => c.type === 'text') as { type: 'text', text: string })?.text || ''
+                              : ''
+                        }
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                          updateMessage(index, e.target.value, !!(typeof message.content !== 'string'))
+                        }
+                        sx={{ 
+                          '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                              borderColor: 'rgba(255, 152, 0, 0.5)',
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#ff9800',
+                            },
+                          }
+                        }}
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                  <ButtonGroup variant="outlined" color="warning">
+                    <Button 
+                      startIcon={<AddIcon />}
+                      onClick={() => addMessage('system')}
+                      sx={{ borderColor: 'rgba(255, 152, 0, 0.5)', color: '#ff9800' }}
+                    >
+                      System
+                    </Button>
+                    <Button 
+                      startIcon={<AddIcon />}
+                      onClick={() => addMessage('user')}
+                      sx={{ borderColor: 'rgba(255, 152, 0, 0.5)', color: '#ff9800' }}
+                    >
+                      User
+                    </Button>
+                    <Button 
+                      startIcon={<AddIcon />}
+                      onClick={() => addMessage('assistant')}
+                      sx={{ borderColor: 'rgba(255, 152, 0, 0.5)', color: '#ff9800' }}
+                    >
+                      Assistant
+                    </Button>
+                  </ButtonGroup>
                 </Box>
+              </Box>
+              
+              {/* POST parameters */}
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Seed (optional)"
+                    type="number"
+                    value={seed === undefined ? '' : seed}
+                    onChange={(e) => setSeed(e.target.value ? Number(e.target.value) : undefined)}
+                    sx={{ 
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 152, 0, 0.5)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#ff9800',
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(255, 152, 0, 0.8)',
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': {
+                        color: '#ff9800',
+                      },
+                    }}
+                  />
+                </Grid>
+                
+                {/* Voice selection */}
+                {selectedModelDetails?.audio && selectedModelDetails?.voices && selectedModelDetails.voices.length > 0 && (
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 152, 0, 0.5)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#ff9800',
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(255, 152, 0, 0.8)',
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': {
+                        color: '#ff9800',
+                      },
+                    }}>
+                      <InputLabel id="voice-select-label">Voice</InputLabel>
+                      <Select
+                        labelId="voice-select-label"
+                        id="voice-select"
+                        value={voice}
+                        label="Voice"
+                        onChange={(e) => setVoice(e.target.value)}
+                      >
+                        {selectedModelDetails.voices.map((voiceOption) => (
+                          <MenuItem key={voiceOption} value={voiceOption}>
+                            {voiceOption}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )}
+                
+                {/* Additional options */}
+                <Grid item xs={12}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexWrap: 'wrap', 
+                    gap: 2, 
+                    p: 2, 
+                    background: 'rgba(255, 152, 0, 0.05)', 
+                    borderRadius: 1 
+                  }}>
+                    <FormControlLabel
+                      control={<Switch checked={json} onChange={(e) => setJson(e.target.checked)} color="warning" />}
+                      label="JSON Mode"
+                      sx={{ color: 'rgba(255, 152, 0, 0.8)' }}
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={privateMode} onChange={(e) => setPrivateMode(e.target.checked)} color="warning" />}
+                      label="Private"
+                      sx={{ color: 'rgba(255, 152, 0, 0.8)' }}
+                    />
+                  </Box>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+          
+          {/* Image API */}
+          {tabValue === 1 && (
+            <Grid container spacing={3} sx={{ mt: 1 }}>
+              {/* Prompt */}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Prompt"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  multiline
+                  rows={2}
+                  required
+                  placeholder="Describe the image you want to generate..."
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 152, 0, 0.5)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 152, 0, 0.7)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#ff9800',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 152, 0, 0.8)',
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: '#ff9800',
+                    },
+                  }}
+                />
+              </Grid>
+              
+              {/* Seed */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Seed (optional)"
+                  type="number"
+                  value={seed === undefined ? '' : seed}
+                  onChange={(e) => setSeed(e.target.value ? Number(e.target.value) : undefined)}
+                  helperText="For reproducible results"
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 152, 0, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#ff9800',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 152, 0, 0.8)',
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: '#ff9800',
+                    },
+                  }}
+                />
+              </Grid>
+              
+              {/* Dimensions */}
+              <Grid item xs={12} sm={6}>
+                <Typography gutterBottom sx={{ color: 'rgba(255, 152, 0, 0.8)' }}>Dimensions</Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" gutterBottom sx={{ color: 'rgba(255, 152, 0, 0.8)' }}>Width: {width}</Typography>
+                    <Slider
+                      value={width}
+                      onChange={(e, newValue) => setWidth(newValue as number)}
+                      min={256}
+                      max={2048}
+                      step={64}
+                      marks={[
+                        { value: 256, label: '256' },
+                        { value: 1024, label: '1024' },
+                        { value: 2048, label: '2048' },
+                      ]}
+                      color="warning"
+                    />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" gutterBottom sx={{ color: 'rgba(255, 152, 0, 0.8)' }}>Height: {height}</Typography>
+                    <Slider
+                      value={height}
+                      onChange={(e, newValue) => setHeight(newValue as number)}
+                      min={256}
+                      max={2048}
+                      step={64}
+                      marks={[
+                        { value: 256, label: '256' },
+                        { value: 1024, label: '1024' },
+                        { value: 2048, label: '2048' },
+                      ]}
+                      color="warning"
+                    />
+                  </Box>
+                </Box>
+              </Grid>
+              
+              {/* Additional options */}
+              <Grid item xs={12}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexWrap: 'wrap', 
+                  gap: 2, 
+                  p: 2, 
+                  background: 'rgba(255, 152, 0, 0.05)', 
+                  borderRadius: 1 
+                }}>
+                  <FormControlLabel
+                    control={<Switch checked={nologo} onChange={(e) => setNologo(e.target.checked)} color="warning" />}
+                    label="No Logo"
+                    sx={{ color: 'rgba(255, 152, 0, 0.8)' }}
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={privateMode} onChange={(e) => setPrivateMode(e.target.checked)} color="warning" />}
+                    label="Private"
+                    sx={{ color: 'rgba(255, 152, 0, 0.8)' }}
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={enhance} onChange={(e) => setEnhance(e.target.checked)} color="warning" />}
+                    label="Enhance"
+                    sx={{ color: 'rgba(255, 152, 0, 0.8)' }}
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={safe} onChange={(e) => setSafe(e.target.checked)} color="warning" />}
+                    label="Safe"
+                    sx={{ color: 'rgba(255, 152, 0, 0.8)' }}
+                  />
+                </Box>
+              </Grid>
+            </Grid>
+          )}
+          
+          {/* Submit Button */}
+          <Button 
+            variant="contained" 
+            color="warning"
+            fullWidth
+            sx={{ mt: 3 }}
+            disabled={!apiUrl || fetchingResponse}
+            onClick={fetchResponse}
+          >
+            {fetchingResponse ? (
+              <>
+                <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
+                Loading...
+              </>
+            ) : (
+              'Generate Response'
+            )}
+          </Button>
+        </Paper>
+        
+        {/* Section 4: RESPONSE */}
+        {(response || imageResponse || responseError) && (
+          <Paper elevation={3} sx={{ p: 3, mb: 3, borderTop: '4px solid #f44336' }}>
+            <Typography variant="h6" gutterBottom sx={{ color: '#f44336', fontWeight: 'bold' }}>
+              4. Response
+            </Typography>
+            
+            {responseError ? (
+              <Paper 
+                elevation={1} 
+                sx={{ 
+                  p: 2, 
+                  backgroundColor: 'rgba(244, 67, 54, 0.05)',
+                  color: '#f44336',
+                  mt: 2
+                }}
+              >
+                {responseError}
+              </Paper>
+            ) : imageResponse ? (
+              <Box sx={{ textAlign: 'center', mt: 2 }}>
                 <Paper 
                   elevation={1} 
                   sx={{ 
-                    p: 2, 
-                    mt: 1, 
-                    overflowX: 'auto',
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                    fontFamily: 'monospace'
+                    p: 2,
+                    backgroundColor: 'rgba(244, 67, 54, 0.03)',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(244, 67, 54, 0.2)'
                   }}
                 >
-                  {apiUrl || 'Enter a prompt to generate a URL'}
+                  <img 
+                    src={transformGoogleDriveUrl(imageResponse)} 
+                    alt="Generated"
+                    style={{ 
+                      maxWidth: '100%', 
+                      maxHeight: '500px',
+                      objectFit: 'contain' 
+                    }}
+                    onError={handleImageError}
+                  />
                 </Paper>
-              </Grid>
-              
-              {/* Generate Response Button */}
-              <Grid item xs={12}>
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  fullWidth
-                  disabled={!apiUrl || fetchingResponse}
-                  onClick={fetchResponse}
-                >
-                  {fetchingResponse ? (
-                    <>
-                      <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
-                      Loading...
-                    </>
-                  ) : (
-                    'Generate Response'
-                  )}
-                </Button>
-              </Grid>
-              
-              {/* Response Container */}
-              {(response || imageResponse || responseError) && (
-                <>
-                  <Grid item xs={12}>
-                    <Divider sx={{ my: 2 }} />
-                    <Typography variant="h6" gutterBottom>
-                      Response Preview
-                    </Typography>
-                  </Grid>
-                  
-                  <Grid item xs={12}>
-                    {responseError ? (
-                      <Paper 
-                        elevation={1} 
-                        sx={{ 
-                          p: 2, 
-                          backgroundColor: 'rgba(255, 0, 0, 0.05)',
-                          color: 'error.main'
-                        }}
-                      >
-                        {responseError}
-                      </Paper>
-                    ) : imageResponse ? (
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Paper 
-                          elevation={1} 
-                          sx={{ 
-                            p: 2,
-                            backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                            overflow: 'hidden'
-                          }}
-                        >
-                          <img 
-                            src={imageResponse} 
-                            alt="Generated"
-                            style={{ 
-                              maxWidth: '100%', 
-                              maxHeight: '500px',
-                              objectFit: 'contain' 
-                            }}
-                            onError={handleImageError}
-                          />
-                        </Paper>
-                        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                          Generated Image: "{prompt}"
-                        </Typography>
-                      </Box>
-                    ) : response ? (
-                      <Paper 
-                        elevation={1} 
-                        sx={{ 
-                          p: 2, 
-                          backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                          fontFamily: json || typeof response === 'object' ? 'monospace' : 'inherit',
-                          whiteSpace: 'pre-wrap',
-                          overflow: 'auto',
-                          maxHeight: '500px'
-                        }}
-                      >
-                        {renderResponseContent()}
-                      </Paper>
-                    ) : null}
-                  </Grid>
-                </>
-              )}
-            </Grid>
-          </Box>
-        </Paper>
+                <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                  Generated Image: "{prompt}"
+                </Typography>
+              </Box>
+            ) : response ? (
+              <Paper 
+                elevation={1} 
+                sx={{ 
+                  p: 2, 
+                  mt: 2,
+                  backgroundColor: 'rgba(244, 67, 54, 0.03)',
+                  fontFamily: json || typeof response === 'object' ? 'monospace' : 'inherit',
+                  whiteSpace: 'pre-wrap',
+                  overflow: 'auto',
+                  maxHeight: '500px',
+                  border: '1px solid rgba(244, 67, 54, 0.2)'
+                }}
+              >
+                {renderResponseContent()}
+              </Paper>
+            ) : null}
+          </Paper>
+        )}
       </Box>
       
       {/* Snackbar for notifications */}
