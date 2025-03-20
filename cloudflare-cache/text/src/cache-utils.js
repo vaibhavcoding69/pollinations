@@ -182,7 +182,7 @@ export async function cacheResponse(cacheKey, response, env, originalUrl, reques
     // Create metadata object with content type and original URL
     const metadata = {
       httpMetadata: {
-        contentType: response.headers.get('content-type') || 'application/json; charset=utf-8',
+        contentType: response.headers.get('content-type') || (response.headers.get('content-type')?.includes('application/json') ? 'application/json; charset=utf-8' : 'text/plain; charset=utf-8'),
         contentEncoding: response.headers.get('content-encoding'),
         contentDisposition: response.headers.get('content-disposition'),
         contentLanguage: response.headers.get('content-language'),

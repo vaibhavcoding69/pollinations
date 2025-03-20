@@ -1,0 +1,13 @@
+{
+  "name": "cloudflare-cache-tests",
+  "version": "1.0.0",
+  "description": "Tests for Cloudflare cache",
+  "type": "module",
+  "scripts": {
+    "test": "node test/vectorize-direct-test.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "node-fetch": "^3.3.2"
+  }
+}

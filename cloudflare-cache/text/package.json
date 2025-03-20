@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "deploy": "wrangler deploy",
-    "logs": "wrangler tail"
+    "logs": "wrangler tail",
+    "dev": "wrangler dev",
+    "test:vector": "node test/vector-cache.test.js"
   },
   "keywords": [
     "cloudflare",
@@ -13,11 +15,13 @@
     "cdn",
     "caching",
     "pollinations",
-    "text"
+    "text",
+    "vectorize"
   ],
   "author": "Pollinations",
   "license": "MIT",
   "devDependencies": {
+    "node-fetch": "^3.3.2",
     "wrangler": "^4.0.0"
   }
 }

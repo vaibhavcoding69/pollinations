@@ -93,6 +93,37 @@ After running the script, follow the provided instructions to set up DNS records
    - Sets appropriate cache headers for CDN optimization
    - Supports caching of streaming responses (SSE) and serves them correctly when requested
 
+3. **Vector Caching (Semantic Search)**:
+   - New `/vectorcache` endpoint for semantic similarity-based caching
+   - Uses Cloudflare Vectorize to store and query vector embeddings of requests
+   - Returns semantically similar cached responses when exact matches aren't found
+   - Adds vector similarity information in response headers
+
+## Using Vector Cache
+
+To use the vector-based semantic caching:
+
+1. Send requests to the `/vectorcache` endpoint instead of the root endpoint
+2. The worker will:
+   - First check for an exact cache match
+   - If no exact match is found, search for semantically similar cached responses
+   - Return the most similar response if one is found (with similarity score in headers)
+   - Otherwise, proxy to origin and cache the response for future requests
+
+Example:
+```
+# Instead of:
+https://text.pollinations.ai/completion
+
+# Use:
+https://text.pollinations.ai/vectorcache/completion
+```
+
+Response headers for vector cache hits include:
+- `x-cache: VECTOR-HIT` - Indicates a vector-based cache hit
+- `x-vector-similarity` - The similarity score (lower is better for euclidean distance)
+- `x-vector-original-key` - The cache key of the original cached response
+
 ## Cost Efficiency
 
 This implementation is designed to be cost-efficient:

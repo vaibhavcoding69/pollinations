@@ -7,6 +7,11 @@ compatibility_date = "2023-05-18"
 binding = "TEXT_BUCKET"
 bucket_name = "pollinations-text"
 
+# Vectorize index for semantic caching
+[[vectorize]]
+binding = "VECTORIZE_CACHE"
+index_name = "pollinations-text-cache"
+
 # Environment variables
 [vars]
 ORIGIN_HOST = "text-origin.pollinations.ai"
