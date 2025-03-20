@@ -12,6 +12,9 @@
  * @returns {Array<number>} - The vector embedding (32 dimensions)
  */
 export function generateVectorEmbedding(url, requestBody = null) {
+  // Start timing
+  const startTime = performance.now();
+  
   // Convert the URL and request body to a string
   const urlString = url.toString();
   const bodyString = requestBody ? JSON.stringify(requestBody) : '';
@@ -47,7 +50,12 @@ export function generateVectorEmbedding(url, requestBody = null) {
     }
   }
   
+  // End timing and log
+  const endTime = performance.now();
+  const timeElapsed = endTime - startTime;
+  
   console.log(`[VECTOR] Generated ${vector.length}-dimension vector`);
+  console.log(`[VECTOR] Vector generation took ${timeElapsed.toFixed(2)}ms`);
   return vector;
 }
 
@@ -113,6 +121,7 @@ export async function storeVector(cacheKey, vector, url, requestBody, env) {
  */
 export async function querySimilarVectors(vector, env, topK = 5, similarityThreshold = 0.8) {
   try {
+    const startTime = performance.now();
     console.log(`[VECTOR] Querying for similar vectors (topK: ${topK}, threshold: ${similarityThreshold})`);
     
     // Query Vectorize for similar vectors
@@ -122,6 +131,9 @@ export async function querySimilarVectors(vector, env, topK = 5, similarityThres
       returnMetadata: 'all'  // We need all metadata to get the cache key
     });
     
+    const endTime = performance.now();
+    const queryTime = endTime - startTime;
+    console.log(`[VECTOR] Query took ${queryTime.toFixed(2)}ms`);
     console.log(`[VECTOR] Found ${matches.count} potential vector matches`);
     
     // Filter matches by similarity threshold
@@ -133,14 +145,24 @@ export async function querySimilarVectors(vector, env, topK = 5, similarityThres
     console.log(`[VECTOR] ${filteredMatches.length} matches passed similarity threshold (${similarityThreshold})`);
     
     // Log details about each match
-    filteredMatches.forEach((match, index) => {
-      console.log(`[VECTOR] Match ${index + 1}: score=${match.score}, key=${match.metadata.cacheKey}, timestamp=${match.metadata.timestamp}`);
-    });
+    if (filteredMatches.length > 0) {
+      // Log the closest match (lowest score for euclidean distance)
+      const closestMatch = filteredMatches[0];
+      console.log(`[VECTOR] Closest match: ID=${closestMatch.id}, score=${closestMatch.score}, similarity=${(1-closestMatch.score).toFixed(4)}, key=${closestMatch.metadata.cacheKey}`);
+      
+      // Log details about each match
+      filteredMatches.forEach((match, index) => {
+        console.log(`[VECTOR] Match ${index + 1}: score=${match.score}, similarity=${(1-match.score).toFixed(4)}, key=${match.metadata.cacheKey}, timestamp=${match.metadata.timestamp}`);
+      });
+    } else {
+      console.log(`[VECTOR] No matches found that meet the similarity threshold`);
+    }
     
     // Return the cache keys of the matching vectors
     return filteredMatches.map(match => ({
       cacheKey: match.metadata.cacheKey,
       score: match.score,
+      similarity: (1 - match.score).toFixed(4),
       url: match.metadata.url,
       timestamp: match.metadata.timestamp
     }));

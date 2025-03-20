@@ -21,7 +21,27 @@ export default {
     
     // Check if this is a vector cache request
     const isVectorCacheRequest = url.pathname.startsWith('/vectorcache');
+    console.log(`Path check: ${url.pathname}, isVectorCacheRequest: ${isVectorCacheRequest}`);
+    
     if (isVectorCacheRequest) {
+      // Handle the /vectorcache endpoint specifically
+      if (url.pathname === '/vectorcache') {
+        console.log('[VECTOR] Root vectorcache endpoint accessed');
+        return new Response(JSON.stringify({
+          status: 'ok',
+          message: 'Vector cache endpoint is active',
+          usage: 'Use /vectorcache/v1/chat/completions for vector-based caching'
+        }), {
+          status: 200,
+          headers: {
+            'content-type': 'application/json',
+            'access-control-allow-origin': '*',
+            'access-control-allow-methods': 'GET, POST, OPTIONS',
+            'access-control-allow-headers': 'Content-Type'
+          }
+        });
+      }
+      
       // Modify the URL to remove the /vectorcache prefix for further processing
       const originalPathname = url.pathname;
       url.pathname = url.pathname.replace('/vectorcache', '');
@@ -31,6 +51,79 @@ export default {
       if (url.pathname === '') {
         url.pathname = '/';
         console.log(`[VECTOR] Empty path detected, setting to root path: ${url.pathname}`);
+      }
+      
+      // Special handling for chat completions
+      if (originalPathname === '/vectorcache/v1/chat/completions') {
+        console.log('[VECTOR] Chat completions endpoint accessed');
+        
+        try {
+          // For POST requests, we need to read the body
+          if (method === 'POST') {
+            try {
+              const requestBody = await request.clone().json();
+              console.log('[VECTOR] Request body:', JSON.stringify(requestBody).substring(0, 200) + '...');
+              
+              // Create a new request to the origin with the modified URL
+              const originUrl = new URL(`https://${env.ORIGIN_HOST}${url.pathname}`);
+              console.log(`[VECTOR] Forwarding to origin: ${originUrl.toString()}`);
+              
+              // Create a new request with the same method, headers, and body
+              const headers = new Headers(request.headers);
+              headers.set('host', originUrl.hostname);
+              
+              const originRequest = new Request(originUrl.toString(), {
+                method: request.method,
+                headers: headers,
+                body: request.body,
+                redirect: 'follow',
+              });
+              
+              // Forward the request to the origin
+              console.log('[VECTOR] Sending direct request to origin...');
+              const originResponse = await fetch(originRequest);
+              console.log(`[VECTOR] Origin response status: ${originResponse.status}`);
+              
+              // Return the response from the origin
+              return originResponse;
+            } catch (error) {
+              console.error('[VECTOR] Error processing chat completions request:', error);
+              return new Response(JSON.stringify({
+                error: 'Error processing request',
+                details: error.message
+              }), {
+                status: 500,
+                headers: {
+                  'content-type': 'application/json',
+                  'access-control-allow-origin': '*'
+                }
+              });
+            }
+          } else if (method === 'OPTIONS') {
+            // Handle CORS preflight requests
+            return new Response(null, {
+              status: 204,
+              headers: {
+                'access-control-allow-origin': '*',
+                'access-control-allow-methods': 'GET, POST, OPTIONS',
+                'access-control-allow-headers': 'Content-Type',
+                'access-control-max-age': '86400'
+              }
+            });
+          }
+        } catch (error) {
+          console.error('[VECTOR] Unhandled error in chat completions endpoint:', error);
+          return new Response(JSON.stringify({
+            error: 'Internal server error',
+            details: error.message
+          }), {
+            status: 500,
+            headers: {
+              'content-type': 'application/json',
+              'access-control-allow-origin': '*'
+            }
+          });
+        }
       }
     }
     
