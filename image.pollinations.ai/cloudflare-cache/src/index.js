@@ -45,7 +45,6 @@ export default {
     if (url.pathname.startsWith('/prompt/')) {
       const analyticsData = {
         originalPrompt,
-        safeParams,
         referrer,
         cacheStatus: 'pending'
       };
@@ -68,12 +67,11 @@ export default {
         if (url.pathname.startsWith('/prompt/')) {
           const analyticsData = {
             originalPrompt,
-            safeParams,
             referrer,
             cacheStatus: 'hit'
           };
           
-          // Don't send any analytics events for cache hits
+          ctx.waitUntil(sendToAnalytics(request, "imageServedFromCache", analyticsData, env));
         }
         
         // Return the cached image with appropriate headers
@@ -129,7 +127,6 @@ export default {
       if (url.pathname.startsWith('/prompt/')) {
         const analyticsData = {
           originalPrompt,
-          safeParams,
           referrer,
           cacheStatus: 'miss'
         };
@@ -145,7 +142,6 @@ export default {
       if (url.pathname.startsWith('/prompt/') && response.status !== 200) {
         const analyticsData = {
           originalPrompt,
-          safeParams,
           referrer,
           error: `HTTP ${response.status}: ${response.statusText}`,
           cacheStatus: 'miss'
