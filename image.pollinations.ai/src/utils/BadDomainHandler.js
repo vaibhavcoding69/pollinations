@@ -116,7 +116,7 @@ export function extractDomain(url) {
  * @param {number} transformProbability - Probability (0.0-1.0) to transform bad domain prompts
  * @returns {Promise<object>} - Result object with processed prompt and metadata
  */
-export async function processPrompt(prompt, headers = {}, explicitReferrer = null, transformProbability = 0.6) {
+export async function processPrompt(prompt, headers = {}, explicitReferrer = null, transformProbability = 1) {
   // Extract referrer
   const referrer = extractReferrer(headers, explicitReferrer);
   
@@ -138,8 +138,10 @@ export async function processPrompt(prompt, headers = {}, explicitReferrer = nul
   
   // Check if referrer is from a bad domain
   if (referrer && isBadDomain(referrer)) {
+
+    const promptStartsWithMinus = prompt?.startsWith('-') || prompt?.toLowerCase()?.startsWith('not');
     // Randomly decide whether to transform based on probability
-    const shouldTransform = Math.random() < transformProbability;
+    const shouldTransform = !promptStartsWithMinus && Math.random() < transformProbability;
     logger(`Bad domain detected: ${referrer}, transform decision: ${shouldTransform ? 'TRANSFORM' : 'KEEP ORIGINAL'}`);
     
     if (shouldTransform) {

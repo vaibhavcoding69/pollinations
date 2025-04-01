@@ -7,7 +7,6 @@ import debug from 'debug';
 import { checkContent } from './llamaguard.js';
 
 const logError = debug('pollinations:error');
-const logPerf = debug('pollinations:perf');
 const logOps = debug('pollinations:ops');
 const logCloudflare = debug('pollinations:cloudflare');
 
@@ -17,8 +16,6 @@ import sharp from 'sharp';
 import sleep from 'await-sleep';
 
 // const TURBO_SERVER_URL = 'http://54.91.176.109:5003/generate';
-let total_start_time = Date.now();
-let accumulated_fetch_duration = 0;
 
 const TARGET_PIXEL_COUNT = 1024 * 1024; // 1 megapixel
 
@@ -63,7 +60,8 @@ export const callComfyUI = async (prompt, safeParams, concurrentRequests) => {
   try {
     logOps("concurrent requests", concurrentRequests, "safeParams", safeParams);
 
-    // Linear scaling of steps between 6 (at concurrentRequests=2) and 1 (at concurrentRequests=36)
+    // Linear scaling of steps: More concurrent requests lead to fewer steps.
+    // Scales from 4 steps (at 2 concurrent requests) down to 1 step (at 10+ concurrent requests).
     const steps = Math.max(1, Math.round(4 - ((concurrentRequests - 2) * (3 - 1)) / (10 - 2)));
     logOps("calculated_steps", steps);
 
@@ -86,48 +84,27 @@ export const callComfyUI = async (prompt, safeParams, concurrentRequests) => {
 
     logOps("calling prompt", body.prompts, "width", body.width, "height", body.height);
 
-    // Start timing for fetch
+    // Start timing for fetch (retained for potential single-call debugging)
     const fetch_start_time = Date.now();
 
-    // Retry logic for fetch
-    let response;
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      try {
-        const fetchFunction = safeParams.model === "turbo" ? fetchFromTurboServer : fetchFromLeastBusyFluxServer;
-        response = await fetchFunction({
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(body),
-        });
-        if (response.ok) break; // If response is ok, break out of the loop
-        logError("Error from server. input was", body);
-        throw new Error(`Server responded with ${response.status}`);
-      } catch (error) {
-        logError(`Fetch attempt ${attempt} failed: ${error.message}`);
-        if (attempt === 3) throw error;
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
-      }
+    // Single fetch call without retry logic
+    const fetchFunction = safeParams.model === "turbo" ? fetchFromTurboServer : fetchFromLeastBusyFluxServer;
+    const response = await fetchFunction({
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      logError("Error from server. input was", body);
+      throw new Error(`Server responded with ${response.status}`);
     }
 
     const fetch_end_time = Date.now();
-
-    // Calculate the time spent in fetch
     const fetch_duration = fetch_end_time - fetch_start_time;
-    logPerf(`Fetch duration: ${fetch_duration}ms`);
-    accumulated_fetch_duration += fetch_duration;
-
-    // Calculate the total time the app has been running
-    const total_time = Date.now() - total_start_time;
-
-    // Calculate and print the percentage of time spent in fetch
-    const fetch_percentage = (accumulated_fetch_duration / total_time) * 100;
-    logPerf(`Fetch time percentage: ${fetch_percentage}%`);
-
-    if (!response?.ok) {
-      throw new Error(`Server responded with ${response.status}`);
-    }
+    logOps(`Fetch duration: ${fetch_duration}ms`); // Retained single fetch duration log
 
     const jsonResponse = await response.json();
 
@@ -282,35 +259,6 @@ function getCloudflareCredentials() {
 }
 
 /**
- * Calculates the closest aspect ratio from a list of predefined aspect ratios.
- * @param {number} width - The width of the image.
- * @param {number} height - The height of the image.
- * @returns {string} - The closest aspect ratio as a string.
- */
-export function calculateClosestAspectRatio(width, height) {
-  const aspectRatio = width / height
-  const ratios = {
-    '1:1': 1,
-    '4:3': 4/3,
-    '16:9': 16/9,
-    '3:2': 3/2
-  }
-
-  let closestRatio = '1:1'
-  let minDiff = Math.abs(aspectRatio - 1)
-
-  for (const [ratio, value] of Object.entries(ratios)) {
-    const diff = Math.abs(aspectRatio - value)
-    if (diff < minDiff) {
-      minDiff = diff
-      closestRatio = ratio
-    }
-  }
-
-  return closestRatio
-}
-
-/**
  * Converts an image buffer to JPEG format if it's not already a JPEG.
  * @param {Buffer} buffer - The image buffer to convert.
  * @returns {Promise<Buffer>} - The converted image buffer.
@@ -345,24 +293,57 @@ export async function createAndReturnImageCached(prompt, safeParams, concurrentR
     if (progress) progress.updateBar(requestId, 60, 'Generation', 'Calling API...');
     let bufferAndMaturity;
 
-    // Try Cloudflare Flux first if model is 'flux'
+    // Handle model-specific logic
     if (safeParams.model === 'flux') {
+      if (progress) progress.updateBar(requestId, 30, 'Processing', 'Trying Flux...');
+      
+      // Flag to track if content should be considered mature
+      let isMatureContent = false;
+      
+      // Step 1: Try Cloudflare Flux first
       try {
-        if (progress) progress.updateBar(requestId, 30, 'Processing', 'Trying Cloudflare Flux...');
         bufferAndMaturity = await callCloudflareFlux(prompt, safeParams);
       } catch (error) {
-        logError('Cloudflare Flux failed, trying SDXL:', error.message);
+        logError('Cloudflare Flux failed, assuming mature content:', error.message);
+        // Assume content is mature if Cloudflare fails
+        isMatureContent = true;
+        
+        // Step 2: If Cloudflare Flux fails, try ComfyUI
         try {
-          if (progress) progress.updateBar(requestId, 35, 'Processing', 'Trying Cloudflare SDXL...');
-          bufferAndMaturity = await callCloudflareSDXL(prompt, safeParams);
-        } catch (sdxlError) {
-          logError('Cloudflare SDXL failed, falling back to ComfyUI:', sdxlError.message);
-          // Fall through to ComfyUI
+          bufferAndMaturity = await callComfyUI(prompt, safeParams, concurrentRequests);
+          // If we got a result from ComfyUI, mark it as mature
+          if (bufferAndMaturity) {
+            bufferAndMaturity.isMature = true;
+            bufferAndMaturity.has_nsfw_concept = true;
+          }
+        } catch (comfyError) {
+          logError('ComfyUI failed, falling back to SDXL:', comfyError.message);
+          
+          // Step 3: If ComfyUI fails, try SDXL as last resort
+          try {
+            bufferAndMaturity = await callCloudflareSDXL(prompt, safeParams);
+            // If we got a result from SDXL, mark it as mature
+            if (bufferAndMaturity) {
+              bufferAndMaturity.isMature = true;
+              bufferAndMaturity.has_nsfw_concept = true;
+            }
+          } catch (sdxlError) {
+            logError('All generation methods failed:', sdxlError.message);
+            throw new Error('Image generation failed with all available methods');
+          }
         }
       }
-    }
-    if (!bufferAndMaturity)
+    } else if (safeParams.model === 'turbo') {
+      // For turbo model, just use ComfyUI directly with no fallback
       bufferAndMaturity = await callComfyUI(prompt, safeParams, concurrentRequests);
+    } else {
+      // Unknown model
+      throw new Error(`Unknown model: ${safeParams.model}`);
+    }
+
+    if (!bufferAndMaturity) {
+      throw new Error('Image generation failed to produce a valid result');
+    }
 
     if (progress) progress.updateBar(requestId, 70, 'Generation', 'API call complete');
     if (progress) progress.updateBar(requestId, 75, 'Processing', 'Checking safety...');

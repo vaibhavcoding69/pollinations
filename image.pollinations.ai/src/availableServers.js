@@ -5,6 +5,13 @@ import debug from 'debug';
 const logError = debug('pollinations:error');
 const logServer = debug('pollinations:server');
 
+// Blocklist for zombie servers
+const SERVER_BLOCKLIST = {
+    turbo: ['http://51.159.184.240:5003'],
+    flux: [],
+    translate: []
+};
+
 // Server storage by type
 const SERVERS = {
     flux: [],
@@ -74,6 +81,11 @@ export const registerServer = (url, type = 'flux') => {
     if (!SERVERS.hasOwnProperty(type)) {
         logServer(`Warning: Unknown server type "${type}", defaulting to "flux"`);
         type = 'flux';
+    }
+
+    if (SERVER_BLOCKLIST[type].includes(url)) {
+        logServer(`Warning: Server ${url} is blocklisted for type ${type}`);
+        return;
     }
 
     const servers = SERVERS[type];
@@ -148,7 +160,12 @@ async function fetchServersFromMainServer() {
         });
         
         servers.forEach(server => {
-            registerServer(server.url, server.type);
+            const type = server.type || 'flux';
+            if (SERVER_BLOCKLIST[type] && SERVER_BLOCKLIST[type].includes(server.url)) {
+                logServer(`Skipping blocklisted server: ${server.url} (type: ${type})`);
+            } else {
+                registerServer(server.url, type);
+            }
         });
         logServer(`[${new Date().toISOString()}] Successfully initialized ${Object.values(SERVERS).flat().length} servers`);
     } catch (error) {
@@ -171,8 +188,14 @@ export const handleRegisterEndpoint = (req, res) => {
             try {
                 const server = JSON.parse(body);
                 if (server.url) {
-                    registerServer(server.url, server.type || 'flux');
-                    res.end(JSON.stringify({ success: true, message: 'Server registered successfully' }));
+                    const type = server.type || 'flux';
+                    if (SERVER_BLOCKLIST[type] && SERVER_BLOCKLIST[type].includes(server.url)) {
+                        logServer(`Rejected blocklisted server: ${server.url} (type: ${type})`);
+                        res.end(JSON.stringify({ success: false, message: 'Server is blocklisted' }));
+                    } else {
+                        registerServer(server.url, type);
+                        res.end(JSON.stringify({ success: true, message: 'Server registered successfully' }));
+                    }
                 } else {
                     res.end(JSON.stringify({ success: false, message: 'Invalid request body - url is required' }));
                 }
