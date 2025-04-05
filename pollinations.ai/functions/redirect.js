@@ -8,13 +8,36 @@ const path = require('path');
 // Dynamically load referral link mappings from affiliate_mapping.json
 let REFERRAL_LINKS = {};
 try {
-  const data = fs.readFileSync(path.join(__dirname, 'affiliate_mapping.json'), 'utf8');
-  const mappings = JSON.parse(data);
-  REFERRAL_LINKS = mappings.reduce((acc, curr) => {
-    acc[curr.Id] = curr.TrackingLink;
-    return acc;
-  }, {});
-  console.log('Loaded affiliate mappings:', REFERRAL_LINKS);
+  // Try multiple potential paths to find the affiliate_mapping.json file
+  let data;
+  const possiblePaths = [
+    path.join(__dirname, 'affiliate_mapping.json'),
+    path.join(__dirname, '../affiliate_mapping.json'),
+    path.join(process.cwd(), 'functions', 'affiliate_mapping.json')
+  ];
+  
+  for (const filePath of possiblePaths) {
+    try {
+      if (fs.existsSync(filePath)) {
+        data = fs.readFileSync(filePath, 'utf8');
+        console.log(`Successfully loaded affiliate mappings from ${filePath}`);
+        break;
+      }
+    } catch (err) {
+      console.log(`Could not load from ${filePath}:`, err.message);
+    }
+  }
+  
+  if (data) {
+    const mappings = JSON.parse(data);
+    REFERRAL_LINKS = mappings.reduce((acc, curr) => {
+      acc[curr.Id] = curr.TrackingLink;
+      return acc;
+    }, {});
+    console.log('Loaded affiliate mappings:', REFERRAL_LINKS);
+  } else {
+    console.error('Could not find affiliate_mapping.json in any of the expected locations');
+  }
 } catch (error) {
   console.error('Error loading affiliate mappings:', error);
 }
