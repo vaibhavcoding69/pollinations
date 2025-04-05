@@ -7,6 +7,7 @@ const path = require('path');
 
 // Dynamically load referral link mappings from affiliate_mapping.json
 let REFERRAL_LINKS = {};
+let MAPPING_LOADED = false;
 try {
   // Try multiple potential paths to find the affiliate_mapping.json file
   let data;
@@ -34,6 +35,7 @@ try {
       acc[curr.Id] = curr.TrackingLink;
       return acc;
     }, {});
+    MAPPING_LOADED = true;
     console.log('Loaded affiliate mappings:', REFERRAL_LINKS);
   } else {
     console.error('Could not find affiliate_mapping.json in any of the expected locations');
@@ -132,9 +134,31 @@ exports.handler = async function(event, context) {
   const pathSegments = path.split('/');
   const targetId = pathSegments[pathSegments.length - 1];
   
+  // Check if we have mappings loaded
+  if (!MAPPING_LOADED) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error: 'Affiliate mappings could not be loaded',
+        message: 'The server could not load the affiliate mappings file'
+      })
+    };
+  }
+  
   // Get URL from query parameters or use the mapped URL
   const params = event.queryStringParameters || {};
-  const url = params.url || REFERRAL_LINKS[targetId] || 'https://pollinations.ai';
+  const url = params.url || REFERRAL_LINKS[targetId];
+  
+  // If no URL is found for this ID, return an error
+  if (!url) {
+    return {
+      statusCode: 404,
+      body: JSON.stringify({
+        error: 'Redirect target not found',
+        message: `No redirect URL found for ID: ${targetId}`
+      })
+    };
+  }
   
   console.log(`Redirect requested for: ${targetId} to ${url}`);
   
