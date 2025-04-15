@@ -43,6 +43,8 @@ First, review the [main README.md](https://github.com/pollinations/pollinations/
 - React hooks for frontend integration
 - Community engagement opportunities
 - Project structure and organization
+- **Project integrations:** The README contains a list of projects that integrate with Pollinations.AI, including both official and third-party projects. **Always check this list for existing integrations and inspiration for new targets.**
+- **Third-party projects:** Consider adding new third-party projects that are built on Pollinations.AI to your list of potential repositories. If you discover new integrations (e.g., apps, bots, or tools using Pollinations), document them and consider PRs or outreach as appropriate.
 
 ### 2. APIDOCS.md
 

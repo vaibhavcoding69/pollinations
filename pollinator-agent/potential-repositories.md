@@ -308,6 +308,7 @@ This document lists repositories where Pollinations.AI could be added to increas
 - **Description**: Educational resources for creative coding and machine learning
 - **Why a good fit**: Focuses on artistic applications of AI, aligning with Pollinations.AI's creative tools
 - **Integration Effort**: Low - Already focused on creative AI applications
+- **Status**: Repository is archived and read-only, cannot accept PRs
 
 ### 49. [Generative-Art-Resources](https://github.com/mattdesl/generative-art-resources)
 - **Stars**: 2.8k+
@@ -530,3 +531,6 @@ For educational impact specifically focused on teens, prioritize:
 | startup_teens_machine_learning | [PR #3](https://github.com/simpleclub/startup_teens_machine_learning/pull/3) | Open | Added Jupyter notebook for generative AI with Pollinations.AI in German |
 | ML-YouTube-Courses | [PR #48](https://github.com/dair-ai/ML-YouTube-Courses/pull/48) | Open | Added Pollinations.AI as a generative AI resource for students |
 | ai-edu | [PR #828](https://github.com/microsoft/ai-edu/pull/828) | In Progress | Added comprehensive Generative AI with Pollinations practical case |
+| taxinomitis | [PR #505](https://github.com/IBM/taxinomitis/pull/505) | Open | Added Pollinations.AI to the "Educational AI Tools" section |
+
+Removed AI-For-Education (not found on GitHub)
