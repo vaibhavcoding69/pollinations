@@ -22,42 +22,42 @@ if (majorVersion < 16) {
       } catch (importError) {
         // Create a basic implementation if the import fails
         console.error('Using basic AbortController polyfill');
-        
+
         class AbortSignal {
           constructor() {
             this.aborted = false;
             this.onabort = null;
             this._eventListeners = {};
           }
-          
+
           addEventListener(type, listener) {
             if (!this._eventListeners[type]) {
               this._eventListeners[type] = [];
             }
             this._eventListeners[type].push(listener);
           }
-          
+
           removeEventListener(type, listener) {
             if (!this._eventListeners[type]) return;
             this._eventListeners[type] = this._eventListeners[type].filter(l => l !== listener);
           }
-          
+
           dispatchEvent(event) {
             if (event.type === 'abort' && this.onabort) {
               this.onabort(event);
             }
-            
+
             if (this._eventListeners[event.type]) {
               this._eventListeners[event.type].forEach(listener => listener(event));
             }
           }
         }
-        
+
         global.AbortController = class AbortController {
           constructor() {
             this.signal = new AbortSignal();
           }
-          
+
           abort() {
             if (this.signal.aborted) return;
             this.signal.aborted = true;
@@ -83,10 +83,10 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { 
-  generateImageUrl, 
-  generateImage, 
-  respondAudio, 
+import {
+  generateImageUrl,
+  generateImage,
+  respondAudio,
   sayText,
   listModels,
   listImageModels,
@@ -94,7 +94,13 @@ import {
   listAudioVoices,
   generateText,
   listResources,
-  listPrompts
+  listPrompts,
+  githubIsAuthenticated,
+  githubGetAuthUrl,
+  githubGetToken,
+  githubListReferrers,
+  githubAddReferrer,
+  githubRemoveReferrer
 } from './src/index.js';
 import { getAllToolSchemas } from './src/schemas.js';
 import fs from 'fs';
@@ -158,14 +164,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const result = await generateImage(prompt, options);
       return {
         content: [
-          { 
-            type: 'image', 
+          {
+            type: 'image',
             data: result.data,
             mimeType: result.mimeType
           },
-          { 
-            type: 'text', 
-            text: `Generated image from prompt: "${prompt}"\n\nImage metadata: ${JSON.stringify(result.metadata, null, 2)}` 
+          {
+            type: 'text',
+            text: `Generated image from prompt: "${prompt}"\n\nImage metadata: ${JSON.stringify(result.metadata, null, 2)}`
           }
         ]
       };
@@ -181,18 +187,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     try {
       const { prompt, voice, seed, voiceInstructions } = args;
       const result = await respondAudio(prompt, voice, seed, voiceInstructions);
-      
+
       // Save audio to a temporary file
       const tempDir = os.tmpdir();
       const tempFilePath = path.join(tempDir, `pollinations-audio-${Date.now()}.mp3`);
-      
+
       // Decode base64 and write to file
       fs.writeFileSync(tempFilePath, Buffer.from(result.data, 'base64'));
-      
+
       // Play the audio file
       audioPlayer.play(tempFilePath, (err) => {
         if (err) console.error('Error playing audio:', err);
-        
+
         // Clean up the temporary file after playing
         try {
           fs.unlinkSync(tempFilePath);
@@ -200,12 +206,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           console.error('Error cleaning up temp file:', cleanupErr);
         }
       });
-      
+
       return {
         content: [
-          { 
-            type: 'text', 
-            text: `Audio has been played.\n\nAudio metadata: ${JSON.stringify(result.metadata, null, 2)}` 
+          {
+            type: 'text',
+            text: `Audio has been played.\n\nAudio metadata: ${JSON.stringify(result.metadata, null, 2)}`
           }
         ]
       };
@@ -221,18 +227,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     try {
       const { text, voice, seed, voiceInstructions } = args;
       const result = await sayText(text, voice, seed, voiceInstructions);
-      
+
       // Save audio to a temporary file
       const tempDir = os.tmpdir();
       const tempFilePath = path.join(tempDir, `pollinations-audio-${Date.now()}.mp3`);
-      
+
       // Decode base64 and write to file
       fs.writeFileSync(tempFilePath, Buffer.from(result.data, 'base64'));
-      
+
       // Play the audio file
       audioPlayer.play(tempFilePath, (err) => {
         if (err) console.error('Error playing audio:', err);
-        
+
         // Clean up the temporary file after playing
         try {
           fs.unlinkSync(tempFilePath);
@@ -240,12 +246,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           console.error('Error cleaning up temp file:', cleanupErr);
         }
       });
-      
+
       return {
         content: [
-          { 
-            type: 'text', 
-            text: `Text has been spoken.\n\nAudio metadata: ${JSON.stringify(result.metadata, null, 2)}` 
+          {
+            type: 'text',
+            text: `Text has been spoken.\n\nAudio metadata: ${JSON.stringify(result.metadata, null, 2)}`
           }
         ]
       };
@@ -367,6 +373,108 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       return {
         content: [
           { type: 'text', text: `Error listing prompts: ${error.message}` }
+        ],
+        isError: true
+      };
+    }
+  } else if (name === 'githubIsAuthenticated') {
+    try {
+      const { sessionId } = args;
+      const result = await githubIsAuthenticated({ sessionId });
+      return {
+        content: [
+          { type: 'text', text: JSON.stringify(result, null, 2) }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          { type: 'text', text: `Error checking GitHub authentication: ${error.message}` }
+        ],
+        isError: true
+      };
+    }
+  } else if (name === 'githubGetAuthUrl') {
+    try {
+      const { returnUrl } = args;
+      const result = await githubGetAuthUrl({ returnUrl });
+      return {
+        content: [
+          { type: 'text', text: JSON.stringify(result, null, 2) }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          { type: 'text', text: `Error getting GitHub auth URL: ${error.message}` }
+        ],
+        isError: true
+      };
+    }
+  } else if (name === 'githubGetToken') {
+    try {
+      const { sessionId } = args;
+      const result = await githubGetToken({ sessionId });
+      return {
+        content: [
+          { type: 'text', text: JSON.stringify(result, null, 2) }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          { type: 'text', text: `Error getting GitHub token: ${error.message}` }
+        ],
+        isError: true
+      };
+    }
+  } else if (name === 'githubListReferrers') {
+    try {
+      const { sessionId } = args;
+      const result = await githubListReferrers({ sessionId });
+      return {
+        content: [
+          { type: 'text', text: JSON.stringify(result, null, 2) }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          { type: 'text', text: `Error listing GitHub referrers: ${error.message}` }
+        ],
+        isError: true
+      };
+    }
+  } else if (name === 'githubAddReferrer') {
+    try {
+      const { sessionId, referrer } = args;
+      const result = await githubAddReferrer({ sessionId, referrer });
+      return {
+        content: [
+          { type: 'text', text: JSON.stringify(result, null, 2) }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          { type: 'text', text: `Error adding GitHub referrer: ${error.message}` }
+        ],
+        isError: true
+      };
+    }
+  } else if (name === 'githubRemoveReferrer') {
+    try {
+      const { sessionId, referrer } = args;
+      const result = await githubRemoveReferrer({ sessionId, referrer });
+      return {
+        content: [
+          { type: 'text', text: JSON.stringify(result, null, 2) }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          { type: 'text', text: `Error removing GitHub referrer: ${error.message}` }
         ],
         isError: true
       };

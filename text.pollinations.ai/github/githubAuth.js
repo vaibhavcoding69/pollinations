@@ -13,6 +13,7 @@ const sessions = new Map();
 // GitHub OAuth configuration
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+// In the future, this will be me.pollinations.ai
 const REDIRECT_URI = process.env.GITHUB_REDIRECT_URI || 'https://text.pollinations.ai/github/callback';
 
 /**
@@ -22,12 +23,12 @@ const REDIRECT_URI = process.env.GITHUB_REDIRECT_URI || 'https://text.pollinatio
 export function createSession() {
   const sessionId = crypto.randomBytes(16).toString('hex');
   const state = crypto.randomBytes(16).toString('hex');
-  
+
   sessions.set(sessionId, {
     state,
     createdAt: new Date().toISOString()
   });
-  
+
   return { sessionId, state };
 }
 
@@ -62,12 +63,12 @@ export function getGithubAuthUrl(sessionId, state) {
   if (!CLIENT_ID) {
     throw new Error('GitHub OAuth is not configured (missing CLIENT_ID)');
   }
-  
+
   const scopes = [
     'repo',       // Access to repositories
     'user:email', // Access to user email
   ].join(' ');
-  
+
   return `https://github.com/login/oauth/authorize?` +
     `client_id=${CLIENT_ID}` +
     `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
@@ -85,7 +86,7 @@ export async function exchangeCodeForToken(code) {
   if (!CLIENT_ID || !CLIENT_SECRET) {
     throw new Error('GitHub OAuth is not configured (missing CLIENT_ID or CLIENT_SECRET)');
   }
-  
+
   const response = await fetch('https://github.com/login/oauth/access_token', {
     method: 'POST',
     headers: {
@@ -99,13 +100,13 @@ export async function exchangeCodeForToken(code) {
       redirect_uri: REDIRECT_URI
     })
   });
-  
+
   const data = await response.json();
-  
+
   if (data.error) {
     throw new Error(`GitHub OAuth error: ${data.error_description || data.error}`);
   }
-  
+
   return data.access_token;
 }
 
@@ -122,11 +123,11 @@ export async function getGithubUserInfo(token) {
       'User-Agent': 'Pollinations-GitHub-Integration'
     }
   });
-  
+
   if (!response.ok) {
     throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
   }
-  
+
   return response.json();
 }
 
@@ -138,16 +139,16 @@ export async function getGithubUserInfo(token) {
  */
 export async function authenticateUser(githubUser, token) {
   const userId = `github:${githubUser.id}`;
-  
+
   // Store GitHub token and generate Pollinations token
   const result = await storeGithubToken(userId, token);
-  
+
   if (!result.success) {
     throw new Error(`Failed to store GitHub token: ${result.error}`);
   }
-  
+
   log(`GitHub user authenticated: ${githubUser.login} (${userId})`);
-  
+
   return {
     userId,
     login: githubUser.login,
@@ -169,7 +170,7 @@ export async function isGithubTokenValid(token) {
         'User-Agent': 'Pollinations-GitHub-Integration'
       }
     });
-    
+
     return response.ok;
   } catch (error) {
     errorLog('Error checking GitHub token:', error);

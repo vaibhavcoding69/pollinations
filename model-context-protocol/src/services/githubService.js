@@ -18,11 +18,11 @@ export async function githubIsAuthenticated({ sessionId }) {
     }
 
     const response = await fetch(`https://text.pollinations.ai/github/status?sessionId=${sessionId}`);
-    
+
     if (!response.ok) {
       return { authenticated: false, error: `Failed to check authentication status: ${response.statusText}` };
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -41,10 +41,10 @@ export async function githubGetAuthUrl({ returnUrl }) {
   try {
     const returnPath = returnUrl || '';
     const sessionId = crypto.randomBytes(16).toString('hex');
-    
+
     // Create auth URL with session ID and return URL
     const authUrl = `https://text.pollinations.ai/github/login?sessionId=${sessionId}&returnUrl=${encodeURIComponent(returnPath)}`;
-    
+
     return {
       authUrl,
       sessionId,
@@ -67,23 +67,23 @@ export async function githubGetToken({ sessionId }) {
     if (!sessionId) {
       return { success: false, error: 'Missing session ID' };
     }
-    
+
     // First check if the user is authenticated
     const authStatus = await githubIsAuthenticated({ sessionId });
-    
+
     if (!authStatus.authenticated) {
       return { success: false, error: 'User is not authenticated with GitHub' };
     }
-    
+
     // Get the Pollinations token
     const response = await fetch(`https://text.pollinations.ai/github/token?sessionId=${sessionId}`);
-    
+
     if (!response.ok) {
       return { success: false, error: `Failed to get Pollinations token: ${response.statusText}` };
     }
-    
+
     const data = await response.json();
-    
+
     return {
       success: true,
       token: data.token,
@@ -106,23 +106,23 @@ export async function githubListReferrers({ sessionId }) {
     if (!sessionId) {
       return { success: false, error: 'Missing session ID' };
     }
-    
+
     // First check if the user is authenticated
     const authStatus = await githubIsAuthenticated({ sessionId });
-    
+
     if (!authStatus.authenticated) {
       return { success: false, error: 'User is not authenticated with GitHub' };
     }
-    
+
     // Get the referrers
     const response = await fetch(`https://text.pollinations.ai/github/referrers/list?sessionId=${sessionId}`);
-    
+
     if (!response.ok) {
       return { success: false, error: `Failed to list referrers: ${response.statusText}` };
     }
-    
+
     const data = await response.json();
-    
+
     return {
       success: true,
       referrers: data.referrers
@@ -145,14 +145,14 @@ export async function githubAddReferrer({ sessionId, referrer }) {
     if (!sessionId || !referrer) {
       return { success: false, error: 'Missing required parameters' };
     }
-    
+
     // First check if the user is authenticated
     const authStatus = await githubIsAuthenticated({ sessionId });
-    
+
     if (!authStatus.authenticated) {
       return { success: false, error: 'User is not authenticated with GitHub' };
     }
-    
+
     // Add the referrer
     const response = await fetch(`https://text.pollinations.ai/github/referrers/add`, {
       method: 'POST',
@@ -164,13 +164,13 @@ export async function githubAddReferrer({ sessionId, referrer }) {
         referrer
       })
     });
-    
+
     if (!response.ok) {
       return { success: false, error: `Failed to add referrer: ${response.statusText}` };
     }
-    
+
     const data = await response.json();
-    
+
     return {
       success: true,
       message: data.message || 'Referrer added successfully'
@@ -193,14 +193,14 @@ export async function githubRemoveReferrer({ sessionId, referrer }) {
     if (!sessionId || !referrer) {
       return { success: false, error: 'Missing required parameters' };
     }
-    
+
     // First check if the user is authenticated
     const authStatus = await githubIsAuthenticated({ sessionId });
-    
+
     if (!authStatus.authenticated) {
       return { success: false, error: 'User is not authenticated with GitHub' };
     }
-    
+
     // Remove the referrer
     const response = await fetch(`https://text.pollinations.ai/github/referrers/remove`, {
       method: 'POST',
@@ -212,13 +212,13 @@ export async function githubRemoveReferrer({ sessionId, referrer }) {
         referrer
       })
     });
-    
+
     if (!response.ok) {
       return { success: false, error: `Failed to remove referrer: ${response.statusText}` };
     }
-    
+
     const data = await response.json();
-    
+
     return {
       success: true,
       message: data.message || 'Referrer removed successfully'
