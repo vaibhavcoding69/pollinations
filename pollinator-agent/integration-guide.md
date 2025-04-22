@@ -152,6 +152,7 @@ When adding Pollinations.AI to repositories, emphasize these key features:
    - For generative AI repos: Look for image, text, and audio sections
    - For API lists: Look for AI/ML sections
    - For educational repos: Look for tools or resources sections
+   - **IMPORTANT**: Only add Pollinations.AI to ONE section per repository, even if multiple sections seem relevant
 
 2. **Follow the exact format** used by existing entries
 
@@ -162,7 +163,12 @@ When adding Pollinations.AI to repositories, emphasize these key features:
    [Pollinations.AI](https://pollinations.ai) - Free, no-signup APIs for text, image, and audio generation with no API keys required
    ```
 
-5. For table formats, follow the exact column structure:
+5. **Keep descriptions concise and similar in length to other entries**
+   - Avoid overly promotional language or excessively long descriptions
+   - Match the tone and length of existing entries to avoid appearing marketing-focused
+   - When in doubt, use shorter descriptions rather than longer ones
+
+6. For table formats, follow the exact column structure:
    ```
    | [Pollinations.AI](https://pollinations.ai) | Free, no-signup APIs for text, image, and audio generation | No | Yes | Yes |
    ```
@@ -183,11 +189,16 @@ When adding Pollinations.AI to repositories, emphasize these key features:
 3. **Create a pull request** from the Pollinations organization account with:
    - Clear title: "Add Pollinations.AI API"
    - Detailed description including:
-     - What Pollinations.AI is
-     - Key features (free, no signup, etc.)
+     - What Pollinations.AI is (emphasize its open-source nature)
+     - Key features (free, no signup, etc.) stated factually without marketing language
      - Link to API documentation
      - Confirmation of HTTPS/CORS support
      - Any other information required by contribution guidelines
+   - **IMPORTANT**: Keep the tone honest and straightforward
+     - Avoid marketing-style language or excessive claims
+     - Present Pollinations.AI as the honest open-source initiative it is
+     - Focus on factual information that would be useful to developers
+     - Let the features speak for themselves without embellishment
 
 4. **Track the PR** in the [pr-tracking.md](./pr-tracking.md) file
 
@@ -249,6 +260,9 @@ Maintain a PR tracking table in the [pr-tracking.md](./pr-tracking.md) file with
 - [ ] Used consistent formatting with existing entries
 - [ ] Highlighted key features (free, no signup, etc.)
 - [ ] Included link to Pollinations.AI website
+- [ ] Used honest, straightforward language without marketing tone
+- [ ] Kept description similar in length to other entries
+- [ ] Added Pollinations.AI to only one section in the repository
 - [ ] Created descriptive PR with all required information
 - [ ] Added entry to [PR tracking file](./pr-tracking.md)
 
@@ -261,3 +275,7 @@ Maintain a PR tracking table in the [pr-tracking.md](./pr-tracking.md) file with
 5. Emphasize the free, no-signup nature as this is a major advantage
 6. Track all PRs systematically
 7. Be patient with the PR review process
+8. Add Pollinations.AI to only one section per repository, even if multiple sections seem relevant
+9. Keep descriptions similar in length to other entries to avoid appearing overly promotional
+10. Use honest, straightforward language that reflects our open-source values
+11. Avoid marketing-style language in PR descriptions and repository entries

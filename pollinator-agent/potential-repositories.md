@@ -321,38 +321,33 @@ This document lists repositories where Pollinations.AI could be added to increas
 - **Why a good fit**: Image generation API would appeal to creative coders
 - **Integration Effort**: Low - Simple PR with creative coding examples
 
-### 51. [awesome-creative-ai](https://github.com/filipecalegario/awesome-creative-ai)
-- **Stars**: 220+
-- **Description**: A curated list of creative artificial intelligence tools, libraries, and resources
-- **Why a good fit**: Direct alignment with Pollinations.AI's creative tools
-- **Integration Effort**: Low - Simple PR with relevant sections
 
 ## Classroom and Educational Platforms
 
-### 52. [awesome-ml-for-students](https://github.com/dair-ai/ML-YouTube-Courses)
+### 51. [awesome-ml-for-students](https://github.com/dair-ai/ML-YouTube-Courses)
 - **Stars**: 9.7k+
 - **Description**: A curated list of machine learning courses on YouTube
 - **Why a good fit**: Pollinations.AI could be featured in practical tools section
 - **Integration Effort**: Low - Simple PR with implementation examples for students
 
-### 53. [ISTE AI & STEM Network](https://sites.google.com/docs.iste.org/isteaiandstemnetwork/)
+### 52. [ISTE AI & STEM Network](https://sites.google.com/docs.iste.org/isteaiandstemnetwork/)
 - **Description**: Educational resources from the International Society for Technology in Education
 - **Why a good fit**: Pollinations.AI's accessibility makes it ideal for classroom integration
 - **Integration Effort**: Medium - Would require outreach and documentation for educators
 
-### 54. [STEAM Education Resources](https://github.com/droxey/awesome-teaching-resources)
+### 53. [STEAM Education Resources](https://github.com/droxey/awesome-teaching-resources)
 - **Stars**: 250+
 - **Description**: A list of awesome resources, tools, and other shiny things for STEAM educators
 - **Why a good fit**: Free tools for creative AI applications in the classroom
 - **Integration Effort**: Low - Simple PR with educational applications
 
-### 55. [code.org](https://github.com/code-dot-org/code-dot-org)
+### 54. [code.org](https://github.com/code-dot-org/code-dot-org)
 - **Stars**: 3.1k+
 - **Description**: The code behind code.org and Hour of Code tutorials
 - **Why a good fit**: Potential to integrate Pollinations.AI in coding tutorials for creative outputs
 - **Integration Effort**: High - Would require formal partnership development
 
-### 56. [AI4K12](https://github.com/touretzkyds/ai4k12)
+### 55. [AI4K12](https://github.com/touretzkyds/ai4k12)
 - **Stars**: 460+
 - **Description**: Resources for teaching AI in K-12
 - **Why a good fit**: Simple, accessible API for demonstrating AI concepts
@@ -360,18 +355,18 @@ This document lists repositories where Pollinations.AI could be added to increas
 
 ## AI Art Communities
 
-### 57. [AIArtists.org](https://github.com/vibertthio/awesome-machine-learning-art)
+### 56. [AIArtists.org](https://github.com/vibertthio/awesome-machine-learning-art)
 - **Stars**: 1.9k+
 - **Description**: A curated list of machine learning art projects and resources
 - **Why a good fit**: Directly relevant to Pollinations.AI's image generation capabilities
 - **Integration Effort**: Low - Simple PR with image generation examples
 
-### 58. [Lexica.art](https://lexica.art)
+### 57. [Lexica.art](https://lexica.art)
 - **Description**: Stable Diffusion search engine, with API for developers
 - **Why a good fit**: Complementary service that could integrate with Pollinations.AI
 - **Integration Effort**: Medium - Would require outreach and partnership development
 
-### 59. [AI Art Generator Collective](https://github.com/LAION-AI/laion-datasets)
+### 58. [AI Art Generator Collective](https://github.com/LAION-AI/laion-datasets)
 - **Stars**: 1.1k+
 - **Description**: Large-scale datasets for AI image generation
 - **Why a good fit**: Pollinations.AI could be featured as a tool for working with these datasets
@@ -379,54 +374,54 @@ This document lists repositories where Pollinations.AI could be added to increas
 
 ## Teen-Focused Communities
 
-### 60. [AI For Teens](https://aiforteens.org/)
+### 59. [AI For Teens](https://aiforteens.org/)
 - **Description**: Free artificial intelligence workshops for teenagers
 - **Why a good fit**: Their workshop modules (especially Module 6 on real-world ML projects) could benefit from Pollinations.AI's accessible APIs
 - **Integration Effort**: Medium - Would require outreach and curriculum integration
 
-### 61. [awesome-stem-resources](https://github.com/JessicaGarson/awesome-stem-resources)
+### 60. [awesome-stem-resources](https://github.com/JessicaGarson/awesome-stem-resources)
 - **Stars**: 120+
 - **Description**: Resources for teaching STEM to different age groups
 - **Why a good fit**: Pollinations.AI's simplicity makes it ideal for classrooms and young coders
 - **Integration Effort**: Low - Simple PR with educational applications
 
-### 62. [ProjectSTEM](https://github.com/projectstem-educational)
+### 61. [ProjectSTEM](https://github.com/projectstem-educational)
 - **Description**: GitHub organization focused on STEM education resources
 - **Why a good fit**: Could enhance AI education modules with practical tools
 - **Integration Effort**: Medium - Would require creating specific educational materials
 
-### 63. [AI & Cybersecurity for Teens (ACT)](https://github.com/cyberai4k12/curriculum)
+### 62. [AI & Cybersecurity for Teens (ACT)](https://github.com/cyberai4k12/curriculum)
 - **Stars**: 180+
 - **Description**: A 40-hour curricular activity sequence integrating AI and Cybersecurity for high school students
 - **Why a good fit**: Students could use Pollinations.AI's text and image generation for cybersecurity education projects
 - **Integration Effort**: Medium - Would require adapting examples for cybersecurity contexts
 
-### 64. [awesome-cyberai4k12](https://github.com/cyberai4k12/awesome-cyberai4k12)
+### 63. [awesome-cyberai4k12](https://github.com/cyberai4k12/awesome-cyberai4k12)
 - **Stars**: 120+
 - **Description**: A curated list of resources for teaching cybersecurity and AI to K-12 students
 - **Why a good fit**: Pollinations.AI could be added as a free, accessible tool for hands-on AI education
 - **Integration Effort**: Low - Simple PR with educational implementation examples
 
-### 65. [TeensInAI Organization](https://github.com/Teens-in-AI)
+### 64. [TeensInAI Organization](https://github.com/Teens-in-AI)
 - **Description**: Organization focused on providing tools and support for teens interested in AI and entrepreneurship
 - **Why a good fit**: Pollinations.AI's free service would support their mission of increasing access to AI tools
 - **Integration Effort**: Medium - Would require outreach and project integration
 
 ## Additional Awesome Lists
 
-### 66. [Awesome-AI](https://github.com/re50urces/Awesome-AI)
+### 65. [Awesome-AI](https://github.com/re50urces/Awesome-AI)
 - **Stars**: 1.2k+
 - **Description**: A curated list of awesome things related to artificial intelligence tools
 - **Why a good fit**: Has specific sections for images tools and conversational AI that align with Pollinations.AI
 - **Integration Effort**: Low - Simple PR adding to existing categories
 
-### 67. [awesome-ai (by fluentcms)](https://github.com/fluentcms/awesome-ai)
+### 66. [awesome-ai (by fluentcms)](https://github.com/fluentcms/awesome-ai)
 - **Stars**: 970+
 - **Description**: A curated list of modern Artificial Intelligence projects, tools and services
 - **Why a good fit**: Focuses on modern AI services that are easy to integrate
 - **Integration Effort**: Low - Simple PR with appropriate categorization
 
-### 68. [awesome-ai-ml-resources](https://github.com/armankhondker/awesome-ai-ml-resources)
+### 67. [awesome-ai-ml-resources](https://github.com/armankhondker/awesome-ai-ml-resources)
 - **Stars**: 1.5k+
 - **Description**: Learn AI/ML for beginners with a roadmap and free resources
 - **Why a good fit**: Pollinations.AI is beginner-friendly and could be integrated into their learning resources
@@ -434,72 +429,72 @@ This document lists repositories where Pollinations.AI could be added to increas
 
 ## Educational Tools & Resources
 
-### 69. [AI-Teaching-Materials](https://github.com/RobotsGo/AI-Teaching-Materials)
+### 68. [AI-Teaching-Materials](https://github.com/RobotsGo/AI-Teaching-Materials)
 - **Stars**: 230+
 - **Description**: A small library for teaching AI and ML to students
 - **Why a good fit**: Pollinations.AI's simple API could be integrated into lessons for practical AI experience
 - **Integration Effort**: Medium - Would require curriculum integration
 
-### 70. [MIT Day of AI](https://www.dayofai.org/)
+### 69. [MIT Day of AI](https://www.dayofai.org/)
 - **Description**: MIT's free, global AI education initiative for K-12 students and teachers
 - **Why a good fit**: Pollinations.AI aligns with their mission of making AI education accessible
 - **Integration Effort**: Medium - Would require partnership development
 
-### 71. [awesome-ai-edu](https://github.com/microsoft/ai-edu)
+### 70. [awesome-ai-edu](https://github.com/microsoft/ai-edu)
 - **Stars**: 12k+
 - **Description**: Educational materials for learning AI and ML (primarily in Chinese)
 - **Why a good fit**: Pollinations.AI's international focus would complement their educational resources
 - **Integration Effort**: Medium - Would require translation and adaptation
 
-### 72. [ColinEberhardt/awesome-ai-developer-tools](https://github.com/ColinEberhardt/awesome-ai-developer-tools)
+### 71. [ColinEberhardt/awesome-ai-developer-tools](https://github.com/ColinEberhardt/awesome-ai-developer-tools)
 - **Stars**: 770+
 - **Description**: A curated list of AI tools for enhancing developer productivity
 - **Why a good fit**: Pollinations.AI's developer-friendly features would be relevant to this audience
 - **Integration Effort**: Low - Simple PR highlighting developer use cases
 
-### 73. [AUTOMATIC1111/stable-diffusion-webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
+### 72. [AUTOMATIC1111/stable-diffusion-webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
 - **Stars**: 100k+
 - **Description**: Popular UI for image generation with extensive features and extensions
 - **Why a good fit**: Integration could offer free cloud-based image creation and extra creative filtering options to users without a high-end GPU
 - **Integration Effort**: Medium - Would require developing a specific extension or integration guide
 
-### 74. [oobabooga/text-generation-webui](https://github.com/oobabooga/text-generation-webui)
+### 73. [oobabooga/text-generation-webui](https://github.com/oobabooga/text-generation-webui)
 - **Stars**: 25k+
 - **Description**: A Gradio-based interface for LLM text generation
 - **Why a good fit**: Integrating Pollinations can provide hosted text output or prompt enhancements at no cost, broadening creative possibilities
 - **Integration Effort**: Medium - Would require specific extension or API integration
 
-### 75. [mckaywrigley/chatbot-ui](https://github.com/mckaywrigley/chatbot-ui)
+### 74. [mckaywrigley/chatbot-ui](https://github.com/mckaywrigley/chatbot-ui)
 - **Stars**: 18k+
 - **Description**: A ChatGPT-style conversational interface
 - **Why a good fit**: Pollinations can add multi-modal responses (images and audio), enriching the user interaction experience
 - **Integration Effort**: Medium - Would require API integration and UI adaptation
 
-### 76. [LAION-AI/Open-Assistant](https://github.com/LAION-AI/Open-Assistant)
+### 75. [LAION-AI/Open-Assistant](https://github.com/LAION-AI/Open-Assistant)
 - **Stars**: 33k+
 - **Description**: A community-driven LLM assistant platform
 - **Why a good fit**: Pollinations integration can deliver creative media on demand (e.g., generating images, audio clips) to extend the assistant's functionality
 - **Integration Effort**: Medium-High - Would require contributing to the project codebase
 
-### 77. [langchain-ai/langchain](https://github.com/hwchase17/langchain)
+### 76. [langchain-ai/langchain](https://github.com/hwchase17/langchain)
 - **Stars**: 65k+
 - **Description**: A framework for building LLM applications
 - **Why a good fit**: Incorporating Pollinations as a tool would expand chains with multi-modal outputs (e.g., combining narrative text with generated visuals), ideal for storytelling or creative applications
 - **Integration Effort**: Medium - Would require developing a specific integration module
 
-### 78. [LLK/scratch-gui](https://github.com/LLK/scratch-gui)
+### 77. [LLK/scratch-gui](https://github.com/LLK/scratch-gui)
 - **Stars**: 9k+
 - **Description**: The block-based coding interface for teens
 - **Why a good fit**: A dedicated Pollinations extension could let young creators generate art or sounds effortlessly, adding value to STEAM educational projects
 - **Integration Effort**: High - Would require developing a Scratch extension and educational examples
 
-### 79. [node-red/node-red](https://github.com/node-red/node-red)
+### 78. [node-red/node-red](https://github.com/node-red/node-red)
 - **Stars**: 16k+
 - **Description**: A low-code, flow-based programming tool
 - **Why a good fit**: Including Pollinations nodes would empower non-coders to integrate AI-generated creative content (images or audio) into IoT and automation projects easily
 - **Integration Effort**: Medium - Would require developing custom nodes
 
-### 80. [terkelg/awesome-creative-coding](https://github.com/terkelg/awesome-creative-coding)
+### 79. [terkelg/awesome-creative-coding](https://github.com/terkelg/awesome-creative-coding)
 - **Stars**: 10k+
 - **Description**: A curated list of creative coding resources
 - **Why a good fit**: Featuring Pollinations helps expose artists and educators to a free, cloud-based generative tool, expanding the resource pool for creative computing enthusiasts
@@ -507,11 +502,11 @@ This document lists repositories where Pollinations.AI could be added to increas
 
 
 For educational impact specifically focused on teens, prioritize:
-1. [AI & Cybersecurity for Teens (ACT)](https://github.com/cyberai4k12/curriculum)
-2. [TeensInAI Organization](https://github.com/Teens-in-AI)
-3. [AI For Teens](https://aiforteens.org/)
-4. [MIT Day of AI](https://www.dayofai.org/)
-5. [awesome-cyberai4k12](https://github.com/cyberai4k12/awesome-cyberai4k12)
+1. [AI & Cybersecurity for Teens (ACT)](https://github.com/cyberai4k12/curriculum) (#62)
+2. [TeensInAI Organization](https://github.com/Teens-in-AI) (#64)
+3. [AI For Teens](https://aiforteens.org/) (#59)
+4. [MIT Day of AI](https://www.dayofai.org/) (#69)
+5. [awesome-cyberai4k12](https://github.com/cyberai4k12/awesome-cyberai4k12) (#63)
 
 ## Note on PR Tracking
 
