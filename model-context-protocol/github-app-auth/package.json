@@ -35,7 +35,7 @@
   "dependencies": {
     "arctic": "^3.6.0",
     "itty-router": "^5.0.18",
-    "jose": "^5.2.0",
+    "jose": "^5.10.0",
     "jsonwebtoken": "^9.0.2",
     "node-fetch": "^2.7.0",
     "open": "^10.1.2",
