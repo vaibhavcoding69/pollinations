@@ -37,6 +37,17 @@ export async function handleAuthStart(request: Request, env: Env): Promise<Respo
   });
 }
 
+// Verify a JWT token
+export async function verifyJWT(env: Env, token: string): Promise<{ valid: boolean; payload?: any; error?: string }> {
+  try {
+    const secret = new TextEncoder().encode(env.JWT_SECRET || 'default_secret_for_development_only');
+    const { payload } = await jose.jwtVerify(token, secret);
+    return { valid: true, payload };
+  } catch (error) {
+    return { valid: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
 // Handle GitHub OAuth callback
 export async function handleAuthCallback(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
@@ -90,7 +101,7 @@ export async function handleAuthCallback(request: Request, env: Env): Promise<Re
           `SELECT session_id FROM auth_sessions WHERE state = ?`
         )
         .bind(state)
-        .first();
+        .first<{ session_id: string }>();
         
         if (sessionResult && sessionResult.session_id) {
           // Update the session with the GitHub user ID and mark as complete
@@ -251,17 +262,4 @@ async function generateJWT(env: Env, userId: string, username: string): Promise<
     .sign(secret);
   
   return jwt;
-}
-
-/**
- * Verify a JWT token
- */
-export async function verifyJWT(env: Env, token: string): Promise<{ valid: boolean; payload?: any; error?: string }> {
-  try {
-    const secret = new TextEncoder().encode(env.JWT_SECRET || 'default_secret_for_development_only');
-    const { payload } = await jose.jwtVerify(token, secret);
-    return { valid: true, payload };
-  } catch (error) {
-    return { valid: false, error: error instanceof Error ? error.message : 'Unknown error' };
-  }
 }

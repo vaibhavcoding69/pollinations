@@ -80,6 +80,34 @@ CREATE TABLE IF NOT EXISTS auth_sessions (
 );
 ```
 
+## Environment Variables
+
+The service requires the following environment variables:
+
+- `GITHUB_CLIENT_ID`: GitHub OAuth App client ID
+- `GITHUB_CLIENT_SECRET`: GitHub OAuth App client secret
+- `REDIRECT_URI`: OAuth callback URL (e.g., `https://auth.pollinations.ai/callback` for production or `http://localhost:8787/callback` for development)
+- `JWT_SECRET`: Secret key for signing JWT tokens (should be a strong random string)
+
+For local development, you can set these in a `.dev.vars` file:
+
+```
+GITHUB_CLIENT_SECRET="your_github_client_secret"
+JWT_SECRET="your_jwt_secret"
+```
+
+For production deployment, set these as Cloudflare secrets:
+
+```bash
+# Set GitHub client secret
+wrangler secret put GITHUB_CLIENT_SECRET
+
+# Set JWT secret
+wrangler secret put JWT_SECRET
+```
+
+Note: Never commit secrets to your repository. The `.dev.vars` file is included in `.gitignore` to prevent accidental exposure.
+
 ## Development
 
 ### Prerequisites

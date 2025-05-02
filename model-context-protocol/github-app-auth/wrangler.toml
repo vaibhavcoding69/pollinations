@@ -17,7 +17,8 @@ REDIRECT_URI = "https://auth.pollinations.ai/callback"
 
 # Use local env variables for development
 [env.dev]
-vars = { GITHUB_CLIENT_ID = "Ov23li0fJetQ56U2JKsF", REDIRECT_URI = "http://localhost:8787/callback", JWT_SECRET = "dev_secret_do_not_use_in_production" }
+vars = { GITHUB_CLIENT_ID = "Ov23li0fJetQ56U2JKsF", REDIRECT_URI = "http://localhost:8787/callback" }
+# JWT_SECRET is set in .dev.vars for local development
 
 # Custom Domain configuration
 [[routes]]
