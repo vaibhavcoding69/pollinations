@@ -11,14 +11,16 @@ database_id = "4145d600-1df6-44a2-9769-5d5f731deb77" # Replace with actual D1 ID
 
 # Add environment variables for production
 [vars]
-GITHUB_CLIENT_ID = "Ov23li0fJetQ56U2JKsF"
 REDIRECT_URI = "https://auth.pollinations.ai/callback"
-# JWT_SECRET should be set via wrangler secret
+# Secrets should be set via wrangler secret commands:
+# wrangler secret put GITHUB_CLIENT_ID --name github-app-auth
+# wrangler secret put GITHUB_CLIENT_SECRET --name github-app-auth
+# wrangler secret put JWT_SECRET --name github-app-auth
 
 # Use local env variables for development
 [env.dev]
-vars = { GITHUB_CLIENT_ID = "Ov23li0fJetQ56U2JKsF", REDIRECT_URI = "http://localhost:8787/callback" }
-# JWT_SECRET is set in .dev.vars for local development
+vars = { REDIRECT_URI = "http://localhost:8787/callback" }
+# Other secrets (GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, JWT_SECRET) are set in .dev.vars for local development
 
 # Custom Domain configuration
 [[routes]]

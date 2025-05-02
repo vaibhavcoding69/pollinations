@@ -89,21 +89,30 @@ The service requires the following environment variables:
 - `REDIRECT_URI`: OAuth callback URL (e.g., `https://auth.pollinations.ai/callback` for production or `http://localhost:8787/callback` for development)
 - `JWT_SECRET`: Secret key for signing JWT tokens (should be a strong random string)
 
-For local development, you can set these in a `.dev.vars` file:
+### Local Development
+
+For local development, set all secrets in a `.dev.vars` file:
 
 ```
-GITHUB_CLIENT_SECRET="your_github_client_secret"
-JWT_SECRET="your_jwt_secret"
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+REDIRECT_URI=http://localhost:8787/callback
+JWT_SECRET=your_jwt_secret
 ```
 
-For production deployment, set these as Cloudflare secrets:
+### Production Deployment
+
+For production deployment, set all secrets using Cloudflare Wrangler secrets:
 
 ```bash
+# Set GitHub client ID
+wrangler secret put GITHUB_CLIENT_ID --name github-app-auth
+
 # Set GitHub client secret
-wrangler secret put GITHUB_CLIENT_SECRET
+wrangler secret put GITHUB_CLIENT_SECRET --name github-app-auth
 
 # Set JWT secret
-wrangler secret put JWT_SECRET
+wrangler secret put JWT_SECRET --name github-app-auth
 ```
 
 Note: Never commit secrets to your repository. The `.dev.vars` file is included in `.gitignore` to prevent accidental exposure.
@@ -129,6 +138,7 @@ Note: Never commit secrets to your repository. The `.dev.vars` file is included 
    GITHUB_CLIENT_ID=your_client_id
    GITHUB_CLIENT_SECRET=your_client_secret
    REDIRECT_URI=http://localhost:8787/callback
+   JWT_SECRET=your_jwt_secret
    ```
 4. Initialize the D1 database:
    ```bash
@@ -167,8 +177,14 @@ The project includes several types of tests:
 
 1. Set up the required secrets in Cloudflare:
    ```bash
+   # Set the GitHub Client ID as a Cloudflare secret
+   echo "your_client_id" | npx wrangler secret put GITHUB_CLIENT_ID --name github-app-auth
+
    # Set the GitHub Client Secret as a Cloudflare secret
    echo "your_client_secret" | npx wrangler secret put GITHUB_CLIENT_SECRET --name github-app-auth
+
+   # Set the JWT secret
+   echo "your_jwt_secret" | npx wrangler secret put JWT_SECRET --name github-app-auth
    ```
 
 2. Configure the custom domain in wrangler.toml:
