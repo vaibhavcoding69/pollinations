@@ -57,53 +57,49 @@ async function startAuth() {
     }
     
     console.log('\nWaiting for authentication to complete...');
-    await checkAuthStatus();
+    console.log('Checking authentication status...');
+    console.log(`Session ID: ${sessionId}`);
     
+    let isComplete = false;
+    let attempts = 0;
+    const maxAttempts = 30; // Check for up to 5 minutes (30 * 10 seconds)
+    
+    while (!isComplete && attempts < maxAttempts) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/status/${sessionId}`);
+        const data = await response.json();
+        
+        if (data.status === 'complete' && data.userId) {
+          isComplete = true;
+          githubUserId = data.userId;
+          authToken = data.token; // Store the JWT token
+          console.log('\n✅ Authentication successful!');
+          console.log(`GitHub User ID: ${githubUserId}`);
+          if (authToken) {
+            console.log('JWT token received for secure authentication');
+          } else {
+            console.log('Warning: No JWT token received, falling back to session-based authentication');
+          }
+          return;
+        }
+        
+        console.log('Authentication pending... (waiting 2 seconds)');
+        await wait(2000); // Wait 2 seconds before checking again
+        attempts++;
+        
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        await wait(2000);
+        attempts++;
+      }
+    }
+    
+    if (!isComplete) {
+      console.error('\n❌ Authentication timed out. Please try again.');
+      process.exit(1);
+    }
   } catch (error) {
     console.error('Error starting authentication:', error);
-    process.exit(1);
-  }
-}
-
-// Check authentication status
-async function checkAuthStatus() {
-  console.log('Checking authentication status...');
-  console.log(`Session ID: ${sessionId}`);
-  
-  let isComplete = false;
-  let attempts = 0;
-  const maxAttempts = 30; // Check for up to 5 minutes (30 * 10 seconds)
-  
-  while (!isComplete && attempts < maxAttempts) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/status/${sessionId}`);
-      const data = await response.json();
-      
-      if (data.status === 'complete' && data.userId) {
-        isComplete = true;
-        githubUserId = data.userId;
-        authToken = data.token; // Store the JWT token
-        console.log('\n✅ Authentication successful!');
-        console.log(`GitHub User ID: ${githubUserId}`);
-        if (authToken) {
-          console.log('JWT token received for secure authentication');
-        }
-        return;
-      }
-      
-      console.log('Authentication pending... (waiting 2 seconds)');
-      await wait(2000); // Wait 2 seconds before checking again
-      attempts++;
-      
-    } catch (error) {
-      console.error('Error checking auth status:', error);
-      await wait(2000);
-      attempts++;
-    }
-  }
-  
-  if (!isComplete) {
-    console.error('\n❌ Authentication timed out. Please try again.');
     process.exit(1);
   }
 }
@@ -120,6 +116,8 @@ async function getDomains() {
     const headers = {
       ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : { 'x-session-id': sessionId })
     };
+    
+    console.log(`Using ${authToken ? 'JWT authentication' : 'session-based authentication'} for API request`);
     
     const response = await fetch(`${API_BASE_URL}/api/user/${githubUserId}/domains`, {
       headers
@@ -146,6 +144,8 @@ async function updateDomains(domains) {
       'Content-Type': 'application/json',
       ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : { 'x-session-id': sessionId })
     };
+    
+    console.log(`Using ${authToken ? 'JWT authentication' : 'session-based authentication'} for API request`);
     
     const response = await fetch(`${API_BASE_URL}/api/user/${githubUserId}/domains`, {
       method: 'PUT',
