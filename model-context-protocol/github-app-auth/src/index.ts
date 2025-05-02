@@ -5,7 +5,7 @@
  * the "thin proxy" design principle.
  */
 
-import { handleAuthStart, handleAuthCallback, handleAuthStatus } from './handlers';
+import { handleAuthStart, handleAuthCallback, handleAuthStatus, verifyJWT } from './handlers';
 import { getUserByGithubId, updateDomainWhitelist, getAuthSession } from './db';
 import type { Env } from './types';
 
@@ -115,12 +115,28 @@ export default {
         const matches = path.match(/^\/api\/user\/(.+)\/domains$/);
         const githubUserId = matches ? matches[1] : null;
         
-        // Get session ID from request header
+        // Check for JWT authentication first
+        const authHeader = request.headers.get('Authorization');
+        let isJwtAuthenticated = false;
+        let jwtPayload = null;
+        
+        if (authHeader !== null && authHeader.startsWith('Bearer ')) {
+          const token = authHeader.split(' ')[1];
+          const jwtResult = await verifyJWT(env, token);
+          
+          if (jwtResult.valid && jwtResult.payload) {
+            isJwtAuthenticated = true;
+            jwtPayload = jwtResult.payload;
+            console.log('JWT authentication successful');
+          }
+        }
+        
+        // Fall back to session ID if JWT authentication failed
         const sessionId = request.headers.get('x-session-id');
         
-        if (!sessionId) {
+        if (!isJwtAuthenticated && sessionId === null) {
           return logAndReturnResponse(
-            new Response(JSON.stringify({ error: 'Authentication required', message: 'Session ID is required in x-session-id header' }), {
+            new Response(JSON.stringify({ error: 'Authentication required', message: 'JWT token or Session ID is required' }), {
               status: 401,
               headers: { 
                 'Content-Type': 'application/json',
@@ -133,7 +149,7 @@ export default {
           );
         }
         
-        if (!githubUserId) {
+        if (githubUserId === null) {
           return logAndReturnResponse(
             new Response(JSON.stringify({ error: 'Invalid user ID' }), {
               status: 400,
@@ -144,43 +160,61 @@ export default {
         }
         
         try {
-          // First verify the session is valid and belongs to this user
-          const session = await getAuthSession(env.DB, sessionId);
-          
-          if (!session || session.status !== 'complete') {
-            return logAndReturnResponse(
-              new Response(JSON.stringify({ error: 'Invalid session', message: 'Session is not authenticated' }), {
-                status: 401,
-                headers: { 
-                  'Content-Type': 'application/json',
-                  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-                  'Pragma': 'no-cache',
-                  'Expires': '0'
-                }
-              }),
-              'Invalid session'
-            );
-          }
-          
-          // Verify the session belongs to the requested user
-          if (session.github_user_id !== githubUserId) {
-            return logAndReturnResponse(
-              new Response(JSON.stringify({ error: 'Unauthorized', message: 'Session does not match requested user' }), {
-                status: 403,
-                headers: { 
-                  'Content-Type': 'application/json',
-                  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-                  'Pragma': 'no-cache',
-                  'Expires': '0'
-                }
-              }),
-              'Unauthorized access'
-            );
+          // If using JWT, verify the token belongs to the requested user
+          if (isJwtAuthenticated) {
+            if (jwtPayload.sub !== githubUserId) {
+              return logAndReturnResponse(
+                new Response(JSON.stringify({ error: 'Unauthorized', message: 'Token does not match requested user' }), {
+                  status: 403,
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                  }
+                }),
+                'Unauthorized access'
+              );
+            }
+          } else {
+            // Fall back to session-based authentication
+            const session = await getAuthSession(env.DB, sessionId!);
+            
+            if (session === null || session.status !== 'complete') {
+              return logAndReturnResponse(
+                new Response(JSON.stringify({ error: 'Invalid session', message: 'Session is not authenticated' }), {
+                  status: 401,
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                  }
+                }),
+                'Invalid session'
+              );
+            }
+            
+            // Verify the session belongs to the requested user
+            if (session.github_user_id !== githubUserId) {
+              return logAndReturnResponse(
+                new Response(JSON.stringify({ error: 'Unauthorized', message: 'Session does not match requested user' }), {
+                  status: 403,
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                  }
+                }),
+                'Unauthorized access'
+              );
+            }
           }
           
           const user = await getUserByGithubId(env.DB, githubUserId);
           
-          if (!user) {
+          if (user === null) {
             return logAndReturnResponse(
               new Response(JSON.stringify({ error: 'User not found' }), {
                 status: 404,
@@ -215,12 +249,28 @@ export default {
         const matches = path.match(/^\/api\/user\/(.+)\/domains$/);
         const githubUserId = matches ? matches[1] : null;
         
-        // Get session ID from request header
+        // Check for JWT authentication first
+        const authHeader = request.headers.get('Authorization');
+        let isJwtAuthenticated = false;
+        let jwtPayload = null;
+        
+        if (authHeader !== null && authHeader.startsWith('Bearer ')) {
+          const token = authHeader.split(' ')[1];
+          const jwtResult = await verifyJWT(env, token);
+          
+          if (jwtResult.valid && jwtResult.payload) {
+            isJwtAuthenticated = true;
+            jwtPayload = jwtResult.payload;
+            console.log('JWT authentication successful');
+          }
+        }
+        
+        // Fall back to session ID if JWT authentication failed
         const sessionId = request.headers.get('x-session-id');
         
-        if (!sessionId) {
+        if (!isJwtAuthenticated && sessionId === null) {
           return logAndReturnResponse(
-            new Response(JSON.stringify({ error: 'Authentication required', message: 'Session ID is required in x-session-id header' }), {
+            new Response(JSON.stringify({ error: 'Authentication required', message: 'JWT token or Session ID is required' }), {
               status: 401,
               headers: { 
                 'Content-Type': 'application/json',
@@ -233,7 +283,7 @@ export default {
           );
         }
         
-        if (!githubUserId) {
+        if (githubUserId === null) {
           return logAndReturnResponse(
             new Response(JSON.stringify({ error: 'Invalid user ID' }), {
               status: 400,
@@ -244,43 +294,61 @@ export default {
         }
         
         try {
-          // First verify the session is valid and belongs to this user
-          const session = await getAuthSession(env.DB, sessionId);
-          
-          if (!session || session.status !== 'complete') {
-            return logAndReturnResponse(
-              new Response(JSON.stringify({ error: 'Invalid session', message: 'Session is not authenticated' }), {
-                status: 401,
-                headers: { 
-                  'Content-Type': 'application/json',
-                  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-                  'Pragma': 'no-cache',
-                  'Expires': '0'
-                }
-              }),
-              'Invalid session'
-            );
-          }
-          
-          // Verify the session belongs to the requested user
-          if (session.github_user_id !== githubUserId) {
-            return logAndReturnResponse(
-              new Response(JSON.stringify({ error: 'Unauthorized', message: 'Session does not match requested user' }), {
-                status: 403,
-                headers: { 
-                  'Content-Type': 'application/json',
-                  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-                  'Pragma': 'no-cache',
-                  'Expires': '0'
-                }
-              }),
-              'Unauthorized access'
-            );
+          // If using JWT, verify the token belongs to the requested user
+          if (isJwtAuthenticated) {
+            if (jwtPayload.sub !== githubUserId) {
+              return logAndReturnResponse(
+                new Response(JSON.stringify({ error: 'Unauthorized', message: 'Token does not match requested user' }), {
+                  status: 403,
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                  }
+                }),
+                'Unauthorized access'
+              );
+            }
+          } else {
+            // Fall back to session-based authentication
+            const session = await getAuthSession(env.DB, sessionId!);
+            
+            if (session === null || session.status !== 'complete') {
+              return logAndReturnResponse(
+                new Response(JSON.stringify({ error: 'Invalid session', message: 'Session is not authenticated' }), {
+                  status: 401,
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                  }
+                }),
+                'Invalid session'
+              );
+            }
+            
+            // Verify the session belongs to the requested user
+            if (session.github_user_id !== githubUserId) {
+              return logAndReturnResponse(
+                new Response(JSON.stringify({ error: 'Unauthorized', message: 'Session does not match requested user' }), {
+                  status: 403,
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                  }
+                }),
+                'Unauthorized access'
+              );
+            }
           }
           
           const user = await getUserByGithubId(env.DB, githubUserId);
           
-          if (!user) {
+          if (user === null) {
             return logAndReturnResponse(
               new Response(JSON.stringify({ error: 'User not found' }), {
                 status: 404,

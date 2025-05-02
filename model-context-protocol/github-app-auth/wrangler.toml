@@ -13,10 +13,11 @@ database_id = "4145d600-1df6-44a2-9769-5d5f731deb77" # Replace with actual D1 ID
 [vars]
 GITHUB_CLIENT_ID = "Ov23li0fJetQ56U2JKsF"
 REDIRECT_URI = "https://auth.pollinations.ai/callback"
+# JWT_SECRET should be set via wrangler secret
 
 # Use local env variables for development
 [env.dev]
-vars = { GITHUB_CLIENT_ID = "Ov23li0fJetQ56U2JKsF", REDIRECT_URI = "http://localhost:8787/callback" }
+vars = { GITHUB_CLIENT_ID = "Ov23li0fJetQ56U2JKsF", REDIRECT_URI = "http://localhost:8787/callback", JWT_SECRET = "dev_secret_do_not_use_in_production" }
 
 # Custom Domain configuration
 [[routes]]

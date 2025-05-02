@@ -79,25 +79,32 @@ async function checkAuthStatus(params) {
  * @param {Object} params - The parameters for getting domains
  * @param {string} params.userId - The GitHub user ID
  * @param {string} params.sessionId - The session ID for authentication
+ * @param {string} [params.token] - JWT token for authentication (optional, preferred over sessionId)
  * @returns {Promise<Object>} - MCP response object with the whitelisted domains
  */
 async function getDomains(params) {
-  const { userId, sessionId } = params;
+  const { userId, sessionId, token } = params;
 
   if (!userId || typeof userId !== 'string') {
     throw new Error('User ID is required and must be a string');
   }
 
-  if (!sessionId || typeof sessionId !== 'string') {
-    throw new Error('Session ID is required and must be a string');
+  if (!token && !sessionId) {
+    throw new Error('Either token or sessionId is required for authentication');
   }
 
   try {
+    // Set up headers with appropriate authentication
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else if (sessionId) {
+      headers['x-session-id'] = sessionId;
+    }
+
     // Call the auth.pollinations.ai domains endpoint
     const response = await fetch(`${AUTH_API_BASE_URL}/api/user/${userId}/domains`, {
-      headers: {
-        'x-session-id': sessionId
-      }
+      headers
     });
 
     if (!response.ok) {
@@ -124,10 +131,11 @@ async function getDomains(params) {
  * @param {string} params.userId - The GitHub user ID
  * @param {string[]} params.domains - The domains to whitelist
  * @param {string} params.sessionId - The session ID for authentication
+ * @param {string} [params.token] - JWT token for authentication (optional, preferred over sessionId)
  * @returns {Promise<Object>} - MCP response object with the updated domains
  */
 async function updateDomains(params) {
-  const { userId, domains, sessionId } = params;
+  const { userId, domains, sessionId, token } = params;
 
   if (!userId || typeof userId !== 'string') {
     throw new Error('User ID is required and must be a string');
@@ -137,18 +145,26 @@ async function updateDomains(params) {
     throw new Error('Domains must be an array of strings');
   }
 
-  if (!sessionId || typeof sessionId !== 'string') {
-    throw new Error('Session ID is required and must be a string');
+  if (!token && !sessionId) {
+    throw new Error('Either token or sessionId is required for authentication');
   }
 
   try {
+    // Set up headers with appropriate authentication
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else if (sessionId) {
+      headers['x-session-id'] = sessionId;
+    }
+
     // Call the auth.pollinations.ai domains endpoint
     const response = await fetch(`${AUTH_API_BASE_URL}/api/user/${userId}/domains`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-session-id': sessionId
-      },
+      headers,
       body: JSON.stringify({ domains })
     });
 
@@ -194,7 +210,8 @@ export const authTools = [
     'Get domains whitelisted for a user',
     {
       userId: z.string().describe('The GitHub user ID'),
-      sessionId: z.string().describe('The session ID for authentication')
+      sessionId: z.string().optional().describe('The session ID for authentication'),
+      token: z.string().optional().describe('JWT token for authentication')
     },
     getDomains
   ],
@@ -205,7 +222,8 @@ export const authTools = [
     {
       userId: z.string().describe('The GitHub user ID'),
       domains: z.array(z.string()).describe('The domains to whitelist'),
-      sessionId: z.string().describe('The session ID for authentication')
+      sessionId: z.string().optional().describe('The session ID for authentication'),
+      token: z.string().optional().describe('JWT token for authentication')
     },
     updateDomains
   ]

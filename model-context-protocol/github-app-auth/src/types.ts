@@ -10,6 +10,7 @@ export interface Env {
   GITHUB_APP_PRIVATE_KEY: string;
   GITHUB_APP_ID: string;
   REDIRECT_URI: string;
+  JWT_SECRET?: string; // Secret for signing JWT tokens
 }
 
 export interface User {
@@ -29,6 +30,7 @@ export interface AuthSession {
   state: string;
   status: 'pending' | 'complete' | 'error';
   created_at?: string;
+  jwt_token?: string; // JWT token for authentication
 }
 
 export interface TokenData {

@@ -21,6 +21,7 @@ const rl = createInterface({
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8787';
 let sessionId = null;
 let githubUserId = null;
+let authToken = null; // JWT token for authentication
 
 // Helper function to ask questions
 function askQuestion(question) {
@@ -81,8 +82,12 @@ async function checkAuthStatus() {
       if (data.status === 'complete' && data.userId) {
         isComplete = true;
         githubUserId = data.userId;
+        authToken = data.token; // Store the JWT token
         console.log('\n✅ Authentication successful!');
         console.log(`GitHub User ID: ${githubUserId}`);
+        if (authToken) {
+          console.log('JWT token received for secure authentication');
+        }
         return;
       }
       
@@ -111,10 +116,13 @@ async function getDomains() {
   }
   
   try {
+    // Use JWT token if available, otherwise fall back to session ID
+    const headers = {
+      ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : { 'x-session-id': sessionId })
+    };
+    
     const response = await fetch(`${API_BASE_URL}/api/user/${githubUserId}/domains`, {
-      headers: {
-        'x-session-id': sessionId
-      }
+      headers
     });
     const data = await response.json();
     
@@ -133,12 +141,15 @@ async function updateDomains(domains) {
   }
   
   try {
+    // Use JWT token if available, otherwise fall back to session ID
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : { 'x-session-id': sessionId })
+    };
+    
     const response = await fetch(`${API_BASE_URL}/api/user/${githubUserId}/domains`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-session-id': sessionId
-      },
+      headers,
       body: JSON.stringify({ domains })
     });
     

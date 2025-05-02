@@ -7,6 +7,7 @@
 import { createGitHubOAuthClient, getUserProfile, GitHubUserProfile } from './github';
 import { createAuthSession, completeAuthSession, getAuthSession, upsertUser } from './db';
 import * as arctic from 'arctic';
+import * as jose from 'jose';
 import type { Env } from './types';
 
 // Handle start of GitHub OAuth flow
@@ -95,6 +96,16 @@ export async function handleAuthCallback(request: Request, env: Env): Promise<Re
           // Update the session with the GitHub user ID and mark as complete
           await completeAuthSession(env.DB, sessionResult.session_id, userProfile.id.toString());
           console.log(`Session ${sessionResult.session_id} updated successfully`);
+          
+          // Generate JWT token
+          const jwt = await generateJWT(env, userProfile.id.toString(), userProfile.login);
+          console.log('JWT token generated successfully');
+          // Add the JWT token to the session
+          await env.DB.prepare(
+            `UPDATE auth_sessions SET jwt_token = ? WHERE session_id = ?`
+          )
+          .bind(jwt, sessionResult.session_id)
+          .run();
         } else {
           console.error('Session not found for state:', state);
         }
@@ -182,9 +193,24 @@ export async function handleAuthStatus(request: Request, env: Env, sessionId: st
       });
     }
     
+    // If session is complete, generate JWT token
+    let token = null;
+    if (session.status === 'complete' && session.github_user_id) {
+      // Get username from DB
+      const userResult = await env.DB.prepare(
+        `SELECT username FROM users WHERE github_user_id = ?`
+      )
+      .bind(session.github_user_id)
+      .first();
+      
+      const username = userResult?.username || 'unknown';
+      token = await generateJWT(env, session.github_user_id, username);
+    }
+    
     return new Response(JSON.stringify({
       status: session.status,
-      userId: session.github_user_id
+      userId: session.github_user_id,
+      token
     }), {
       headers: { 
         'Content-Type': 'application/json',
@@ -204,5 +230,38 @@ export async function handleAuthStatus(request: Request, env: Env, sessionId: st
         'Expires': '0'
       }
     });
+  }
+}
+
+/**
+ * Generate a JWT token for a user
+ */
+async function generateJWT(env: Env, userId: string, username: string): Promise<string> {
+  // Use a secret key from environment variables
+  const secret = new TextEncoder().encode(env.JWT_SECRET || 'default_secret_for_development_only');
+  
+  // Create a JWT that expires in 24 hours
+  const jwt = await new jose.SignJWT({ 
+    sub: userId,
+    username: username
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('24h')
+    .sign(secret);
+  
+  return jwt;
+}
+
+/**
+ * Verify a JWT token
+ */
+export async function verifyJWT(env: Env, token: string): Promise<{ valid: boolean; payload?: any; error?: string }> {
+  try {
+    const secret = new TextEncoder().encode(env.JWT_SECRET || 'default_secret_for_development_only');
+    const { payload } = await jose.jwtVerify(token, secret);
+    return { valid: true, payload };
+  } catch (error) {
+    return { valid: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
