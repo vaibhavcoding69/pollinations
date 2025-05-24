@@ -1,10 +1,48 @@
-import type { Env } from './types';
+import type { Env, User } from './types';
 import { createJWT, verifyJWT, extractBearerToken } from './jwt';
-import { upsertUser, getUser, updateDomainAllowlist, getDomains, isDomainAllowed, saveOAuthState, getOAuthState, deleteOAuthState, cleanupOldStates, generateApiToken, getApiToken, deleteApiTokens, validateApiToken } from './db';
+import { 
+  ensureTables,
+  upsertUser, 
+  getUser, 
+  updateDomainAllowlist, 
+  getDomains, 
+  isDomainAllowed, 
+  saveOAuthState, 
+  getOAuthState, 
+  deleteOAuthState, 
+  cleanupOldStates, 
+  generateApiToken, 
+  getApiToken, 
+  deleteApiTokens, 
+  validateApiToken, 
+  savePkceSession, 
+  getPkceSession, 
+  deletePkceSession 
+} from './db';
 import { exchangeCodeForToken, getGitHubUser } from './github';
+import { 
+  generateCodeVerifier, 
+  generateCodeChallenge, 
+  getGitHubAuthorizeUrl, 
+  createTokenResponse, 
+  createOAuthErrorResponse, 
+  generateOAuthMetadata 
+} from './oauth-utils';
+import { clientIdAlreadyApproved, parseRedirectApproval, renderApprovalDialog } from './oauth-approval';
+import { handleTestPkceClient } from './test-pkce-client';
 
-// Define the TEST_CLIENT_HTML directly to avoid module issues
-const TEST_CLIENT_HTML = require('./test-client').TEST_CLIENT_HTML;
+// Import the test client HTML
+const { TEST_CLIENT_HTML } = require('./test-client');
+
+// Function to handle the test client route
+async function handleTestClient(request: Request, env: Env, corsHeaders: Record<string, string>): Promise<Response> {
+  return new Response(TEST_CLIENT_HTML, {
+    headers: {
+      'Content-Type': 'text/html',
+      ...corsHeaders
+    }
+  });
+}
 
 // Define the ScheduledEvent type for the scheduled function
 interface ScheduledEvent {
@@ -14,20 +52,42 @@ interface ScheduledEvent {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
+    // Ensure all required tables exist in the database
+    await ensureTables(env.DB);
     
-    // Add CORS headers
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    // Add CORS headers to all responses
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     };
-    
-    // Handle preflight
+
+    // Handle OPTIONS requests for CORS
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
-    
+
+    // Handle OAuth approval form submissions
+    if (path === '/approve' && request.method === 'POST') {
+      try {
+        const { state, headers } = await parseRedirectApproval(request, env.COOKIE_SECRET);
+        
+        // Redirect to the authorization endpoint with the original parameters
+        const redirectUrl = new URL('/authorize', url.origin);
+        if (state.redirectUri) redirectUrl.searchParams.set('redirect_uri', state.redirectUri);
+        if (state.state) redirectUrl.searchParams.set('state', state.state);
+        if (state.clientId) redirectUrl.searchParams.set('client_id', state.clientId);
+        
+        return Response.redirect(redirectUrl.toString(), 302);
+      } catch (error) {
+        console.error('Error processing approval:', error);
+        return createOAuthErrorResponse('server_error', 'Failed to process approval', 500);
+      }
+    }
+
     try {
       // Route handling
       switch (url.pathname) {
@@ -38,15 +98,22 @@ export default {
           });
           
         case '/test-client':
-          return new Response(TEST_CLIENT_HTML, { 
-            headers: { ...corsHeaders, 'Content-Type': 'text/html' } 
-          });
+          return handleTestClient(request, env, corsHeaders);
           
         case '/authorize':
           return handleAuthorize(request, env, corsHeaders);
           
         case '/callback':
           return handleCallback(request, env, corsHeaders);
+          
+        case '/test-pkce-client':
+          return handleTestPkceClient(request);
+          
+        case '/token':
+          return handleToken(request, env, corsHeaders);
+          
+        case '/.well-known/oauth-authorization-server':
+          return generateOAuthMetadata(env, request);
           
         case '/api/user':
           return handleGetUser(request, env, corsHeaders);
@@ -84,82 +151,213 @@ export default {
 };
 
 async function handleAuthorize(request: Request, env: Env, corsHeaders: Record<string, string>): Promise<Response> {
+  // Extract query parameters
   const url = new URL(request.url);
-  const redirectUri = url.searchParams.get('redirect_uri');
-  
-  if (!redirectUri) {
-    return createErrorResponse(400, 'Missing required parameter: redirect_uri', corsHeaders);
-  }
-  
-  const state = crypto.randomUUID();
-  await saveOAuthState(env.DB, state, redirectUri);
-  
-  // Use the current host for the OAuth callback
-  const callbackUrl = new URL('/callback', url.origin).toString();
-  
-  // Use environment variables from env object
   const clientId = env.GITHUB_CLIENT_ID;
+  const redirectUri = url.searchParams.get('redirect_uri');
+  const state = url.searchParams.get('state') || crypto.randomUUID();
   
-  const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: callbackUrl,
-    scope: 'user:email',
-    state,
-  });
+  // Use the configured callback URL that matches GitHub's registered URL
+  const callbackUrl = new URL('/callback', url.origin);
   
-  const authUrl = `https://github.com/login/oauth/authorize?${params}`;
-  return Response.redirect(authUrl, 302);
-}
-
-async function handleCallback(request: Request, env: Env, corsHeaders: Record<string, string>): Promise<Response> {
-  const url = new URL(request.url);
-  const code = url.searchParams.get('code');
-  const state = url.searchParams.get('state');
+  // Check for client_id in the request (optional for backward compatibility)
+  const requestClientId = url.searchParams.get('client_id');
   
-  if (!code || !state) {
-    return createErrorResponse(400, 'Missing required parameters: code or state', corsHeaders);
-  }
-  
-  // Get saved state
-  const savedState = await getOAuthState(env.DB, state);
-  
-  if (!savedState) {
-    return createErrorResponse(400, 'Invalid or expired state', corsHeaders);
+  // Validate required OAuth 2.1 parameters
+  if (!redirectUri) {
+    return createOAuthErrorResponse('invalid_request', 'Missing required parameter: redirect_uri', 400);
   }
   
   try {
-    // Hardcode client ID and secret since env vars might be causing issues
-    const clientId = 'Ov23li0fJetQ56U2JKsF';
-    const clientSecret = env.GITHUB_CLIENT_SECRET;
+    // If a client_id was provided and it's different from our own, check if it's been approved
+    if (requestClientId && requestClientId !== clientId) {
+      // Check if this client has been approved before
+      const approved = await clientIdAlreadyApproved(request, requestClientId, env.COOKIE_SECRET);
+      
+      if (!approved) {
+        // If not approved, show the approval dialog
+        return renderApprovalDialog(request, {
+          client: {
+            clientId: requestClientId,
+            clientName: `Application ${requestClientId.substring(0, 8)}...`,
+          },
+          server: {
+            name: 'Pollinations GitHub Auth',
+            logo: 'https://avatars.githubusercontent.com/u/79897291?s=200&v=4',
+            description: 'This service allows applications to authenticate with GitHub on your behalf.',
+          },
+          state: {
+            clientId: requestClientId,
+            redirectUri,
+            state,
+          },
+        });
+      }
+    }
     
-    // Exchange code for token
-    const accessToken = await exchangeCodeForToken(code, new URL('/callback', url.origin).toString(), env);
+    // Generate PKCE parameters
+    const codeVerifier = generateCodeVerifier();
+    const finalCodeChallenge = await generateCodeChallenge(codeVerifier);
     
-    // Get GitHub user
+    // Save PKCE session
+    await savePkceSession(env.DB, { state, code_verifier: codeVerifier, redirect_uri: redirectUri });
+    
+    // Generate the GitHub authorization URL
+    const authorizeUrl = getGitHubAuthorizeUrl({
+      clientId,
+      redirectUri: callbackUrl.toString(),
+      state,
+      codeChallenge: finalCodeChallenge,
+    });
+    
+    // Redirect to GitHub for authorization
+    return Response.redirect(authorizeUrl, 302);
+  } catch (error) {
+    console.error('Error in authorize:', error);
+    return createOAuthErrorResponse('server_error', 'Failed to process authorization request', 500);
+  }
+}
+
+async function handleCallback(request: Request, env: Env, corsHeaders: Record<string, string>): Promise<Response> {
+  // Extract query parameters
+  const url = new URL(request.url);
+  const code = url.searchParams.get('code');
+  const state = url.searchParams.get('state');
+  const error = url.searchParams.get('error');
+  const errorDescription = url.searchParams.get('error_description');
+
+  // Handle OAuth errors
+  if (error) {
+    return createOAuthErrorResponse(error, errorDescription || 'OAuth error', 400);
+  }
+
+  // Validate required parameters
+  if (!code || !state) {
+    return createOAuthErrorResponse('invalid_request', 'Missing required parameters: code, state', 400);
+  }
+
+  try {
+    // Retrieve the PKCE session
+    const pkceSession = await getPkceSession(env.DB, state);
+    if (!pkceSession) {
+      return createOAuthErrorResponse('invalid_request', 'Invalid or expired state parameter', 400);
+    }
+
+    // Get the code verifier from the PKCE session
+    const codeVerifier = pkceSession.code_verifier;
+    // Store the original redirect URI from the PKCE session for later use
+    const originalRedirectUri = pkceSession.redirect_uri;
+    
+    // Use the registered callback URL for GitHub token exchange
+    // This must match exactly what's registered in the GitHub OAuth app
+    const registeredCallbackUrl = new URL('/callback', url.origin).toString();
+
+    // Exchange the code for an access token using the code verifier for PKCE
+    const accessToken = await exchangeCodeForToken(code, registeredCallbackUrl, env, codeVerifier);
+
+    // Get the user's information from GitHub
+    const githubUser = await getGitHubUser(accessToken);
+
+    // Store or update the user in our database
+    const user = await upsertUser(env.DB, {
+      github_user_id: githubUser.id.toString(),
+      username: githubUser.login,
+    });
+
+    // Create a JWT for the user
+    const token = await createJWT(user.github_user_id, user.username, env);
+
+    // Clean up the PKCE session
+    await deletePkceSession(env.DB, state);
+
+    // Redirect back to the client with the token
+    // Use the original redirect URI from the PKCE session
+    const clientRedirectUrl = new URL(originalRedirectUri);
+    clientRedirectUrl.searchParams.set('token', token);
+    clientRedirectUrl.searchParams.set('state', state);
+
+    return Response.redirect(clientRedirectUrl.toString(), 302);
+  } catch (error) {
+    console.error('Error in callback:', error);
+    return createOAuthErrorResponse('server_error', 'Failed to process callback', 500);
+  }
+}
+
+async function handleToken(request: Request, env: Env, corsHeaders: Record<string, string>): Promise<Response> {
+  // Only accept POST requests
+  if (request.method !== 'POST') {
+    return createOAuthErrorResponse('invalid_request', 'Method not allowed', 405);
+  }
+  
+  // Parse the request body
+  let body: any;
+  const contentType = request.headers.get('Content-Type') || '';
+  
+  try {
+    if (contentType.includes('application/x-www-form-urlencoded')) {
+      const formData = await request.formData();
+      body = Object.fromEntries(formData.entries());
+    } else if (contentType.includes('application/json')) {
+      body = await request.json();
+    } else {
+      return createOAuthErrorResponse('invalid_request', 'Unsupported content type', 400);
+    }
+  } catch (error) {
+    console.error('Error parsing request body:', error);
+    return createOAuthErrorResponse('invalid_request', 'Invalid request body', 400);
+  }
+  
+  // Validate grant type
+  const grantType = body.grant_type;
+  if (grantType !== 'authorization_code') {
+    return createOAuthErrorResponse('unsupported_grant_type', 'Only authorization_code grant type is supported', 400);
+  }
+  
+  // Validate required parameters
+  const code = body.code;
+  const redirectUri = body.redirect_uri;
+  const codeVerifier = body.code_verifier;
+  
+  if (!code || !redirectUri) {
+    return createOAuthErrorResponse('invalid_request', 'Missing required parameters', 400);
+  }
+  
+  try {
+    // Get the PKCE session using the state parameter
+    // If state is not provided, we can't verify the code verifier
+    let pkceSession = null;
+    if (body.state) {
+      pkceSession = await getPkceSession(env.DB, body.state);
+      if (!pkceSession) {
+        return createOAuthErrorResponse('invalid_request', 'Invalid or expired state parameter', 400);
+      }
+    }
+    
+    // Exchange the code for an access token
+    const accessToken = await exchangeCodeForToken(code, redirectUri, env, pkceSession?.code_verifier);
+    
+    // Get the user's information from GitHub
     const githubUser = await getGitHubUser(accessToken);
     
-    // Create or update user
+    // Store or update the user in our database
     const user = await upsertUser(env.DB, {
       github_user_id: githubUser.id.toString(),
       username: githubUser.login,
     });
     
-    // Generate JWT
+    // Create a JWT for the user
     const token = await createJWT(user.github_user_id, user.username, env);
     
-    // Clean up state
-    await deleteOAuthState(env.DB, state);
+    // Clean up the PKCE session if it exists
+    if (pkceSession && body.state) {
+      await deletePkceSession(env.DB, body.state);
+    }
     
-    // Redirect back to the original redirect URI with the token
-    const redirectTo = new URL(savedState.redirect_uri);
-    redirectTo.searchParams.set('token', token);
-    redirectTo.searchParams.set('user_id', user.github_user_id);
-    redirectTo.searchParams.set('username', user.username);
-    
-    return Response.redirect(redirectTo.toString(), 302);
+    // Return the token in the OAuth 2.1 format
+    return createTokenResponse(token);
   } catch (error) {
-    console.error('Authentication failed:', error);
-    return createErrorResponse(500, 'Authentication failed', corsHeaders);
+    console.error('Error in token endpoint:', error);
+    return createOAuthErrorResponse('server_error', 'Failed to process token request', 500);
   }
 }
 

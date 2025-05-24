@@ -1,6 +1,65 @@
 import type { User } from './types';
 import type { D1Database } from '@cloudflare/workers-types';
 
+// Function to ensure all required tables exist
+export async function ensureTables(db: D1Database): Promise<void> {
+  try {
+    // Create users table if it doesn't exist
+    await db.prepare(`CREATE TABLE IF NOT EXISTS users (
+      github_user_id TEXT PRIMARY KEY,
+      username TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`).run();
+    
+    // Create domains table if it doesn't exist
+    await db.prepare(`CREATE TABLE IF NOT EXISTS domains (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      domain TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, domain)
+    )`).run();
+    
+    // Create oauth_state table if it doesn't exist
+    await db.prepare(`CREATE TABLE IF NOT EXISTS oauth_state (
+      state TEXT PRIMARY KEY,
+      redirect_uri TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`).run();
+    
+    // Create api_tokens table if it doesn't exist
+    await db.prepare(`CREATE TABLE IF NOT EXISTS api_tokens (
+      token TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL UNIQUE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`).run();
+    
+    // Create pkce_sessions table if it doesn't exist
+    await db.prepare(`CREATE TABLE IF NOT EXISTS pkce_sessions (
+      state TEXT PRIMARY KEY,
+      code_verifier TEXT NOT NULL,
+      redirect_uri TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`).run();
+    
+    // Create index for pkce_sessions table
+    await db.prepare(`CREATE INDEX IF NOT EXISTS idx_pkce_sessions_created ON pkce_sessions(created_at)`).run();
+    
+    console.log('All required tables have been created or verified');
+  } catch (error) {
+    console.error('Error creating tables:', error);
+  }
+}
+
+// Interface for PKCE session data
+export interface PkceSession {
+  state: string;
+  code_verifier: string;
+  redirect_uri: string;
+  created_at?: string;
+}
+
 // Ultra-simplified user management - only store github_user_id and username
 export async function upsertUser(db: D1Database, user: Partial<User> & { github_user_id: string }): Promise<User> {
   // Minimal query with only essential fields
@@ -107,6 +166,12 @@ export async function cleanupOldStates(db: D1Database): Promise<void> {
     DELETE FROM oauth_state 
     WHERE created_at < datetime('now', '-10 minutes')
   `).run();
+  
+  // Also clean up old PKCE sessions
+  await db.prepare(`
+    DELETE FROM pkce_sessions 
+    WHERE created_at < datetime('now', '-10 minutes')
+  `).run();
 }
 
 // API token management functions
@@ -153,4 +218,38 @@ export async function validateApiToken(db: D1Database, token: string): Promise<s
   `).bind(token).first();
   
   return result ? (result.user_id as string) : null;
+}
+
+// PKCE session management functions
+export async function savePkceSession(db: D1Database, session: PkceSession): Promise<void> {
+  await db.prepare(`
+    INSERT INTO pkce_sessions (state, code_verifier, redirect_uri)
+    VALUES (?, ?, ?)
+  `).bind(
+    session.state,
+    session.code_verifier,
+    session.redirect_uri
+  ).run();
+}
+
+export async function getPkceSession(db: D1Database, state: string): Promise<PkceSession | null> {
+  const result = await db.prepare(`
+    SELECT state, code_verifier, redirect_uri, created_at
+    FROM pkce_sessions WHERE state = ?
+  `).bind(state).first();
+  
+  if (!result) return null;
+  
+  return {
+    state: result.state as string,
+    code_verifier: result.code_verifier as string,
+    redirect_uri: result.redirect_uri as string,
+    created_at: result.created_at as string
+  };
+}
+
+export async function deletePkceSession(db: D1Database, state: string): Promise<void> {
+  await db.prepare(`
+    DELETE FROM pkce_sessions WHERE state = ?
+  `).bind(state).run();
 }

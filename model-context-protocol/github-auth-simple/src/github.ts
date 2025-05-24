@@ -1,6 +1,8 @@
 import type { Env, GitHubUser } from './types';
 
-export async function exchangeCodeForToken(code: string, redirectUri: string, env: Env): Promise<string> {
+// This is a wrapper around the exchangeCodeForToken function from oauth-utils.ts
+// It's kept for backward compatibility
+export async function exchangeCodeForToken(code: string, redirectUri: string, env: Env, codeVerifier?: string): Promise<string> {
   // Use environment variables from env object
   const clientId = env.GITHUB_CLIENT_ID;
   const clientSecret = env.GITHUB_CLIENT_SECRET;
@@ -15,18 +17,26 @@ export async function exchangeCodeForToken(code: string, redirectUri: string, en
     env_keys: Object.keys(env)
   });
   
+  // Build the request body with optional code_verifier for PKCE
+  const requestBody: any = {
+    client_id: clientId,
+    client_secret: clientSecret,
+    code,
+    redirect_uri: redirectUri,
+  };
+  
+  // Add code_verifier if provided (for PKCE)
+  if (codeVerifier) {
+    requestBody.code_verifier = codeVerifier;
+  }
+  
   const response = await fetch('https://github.com/login/oauth/access_token', {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      client_id: clientId,
-      client_secret: clientSecret,
-      code,
-      redirect_uri: redirectUri,
-    }),
+    body: JSON.stringify(requestBody),
   });
   
   const data = await response.json() as { access_token?: string; error?: string; error_description?: string };
