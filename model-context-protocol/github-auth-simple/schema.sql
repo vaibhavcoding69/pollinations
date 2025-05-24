@@ -2,10 +2,6 @@
 CREATE TABLE IF NOT EXISTS users (
   github_user_id TEXT PRIMARY KEY,
   username TEXT NOT NULL,
-  -- Note: The following fields exist in the production database but are no longer used by the application
-  -- avatar_url TEXT,
-  -- email TEXT,
-  -- domain_allowlist TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -17,15 +13,25 @@ CREATE TABLE IF NOT EXISTS oauth_state (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- API tokens for external service access
-CREATE TABLE IF NOT EXISTS api_tokens (
-  token TEXT PRIMARY KEY,
+-- Auth sessions for session-based authentication
+CREATE TABLE IF NOT EXISTS auth_sessions (
+  session_id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(github_user_id) ON DELETE CASCADE
 );
 
+-- Domains table for allowlist management
+CREATE TABLE IF NOT EXISTS domains (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT NOT NULL,
+  domain TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, domain),
+  FOREIGN KEY (user_id) REFERENCES users(github_user_id) ON DELETE CASCADE
+);
+
 -- Index for performance
 CREATE INDEX IF NOT EXISTS idx_oauth_state_created ON oauth_state(created_at);
--- Index for looking up tokens by user
-CREATE INDEX IF NOT EXISTS idx_api_tokens_user_id ON api_tokens(user_id);
+-- Index for looking up sessions by user
+CREATE INDEX IF NOT EXISTS idx_auth_sessions_user_id ON auth_sessions(user_id);
