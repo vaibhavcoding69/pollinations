@@ -182,7 +182,7 @@ async function updateDomains(params) {
       throw new Error(`Failed to update domains: ${response.statusText}`);
     }
 
-    // Return the response in MCP format
+    // Get the updated domains
     return createMCPResponse([
       createTextContent({
         success: true,
