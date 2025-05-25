@@ -154,3 +154,36 @@ export async function validateApiToken(db: D1Database, token: string): Promise<s
   
   return result ? (result.user_id as string) : null;
 }
+
+// Admin functions for database dump
+export async function getAllUsers(db: D1Database): Promise<any[]> {
+  const result = await db.prepare(`
+    SELECT * FROM users ORDER BY created_at DESC
+  `).all();
+  
+  return result.results || [];
+}
+
+export async function getAllDomains(db: D1Database): Promise<any[]> {
+  const result = await db.prepare(`
+    SELECT * FROM domains ORDER BY created_at DESC
+  `).all();
+  
+  return result.results || [];
+}
+
+export async function getAllApiTokens(db: D1Database): Promise<any[]> {
+  const result = await db.prepare(`
+    SELECT * FROM api_tokens ORDER BY created_at DESC
+  `).all();
+  
+  return result.results || [];
+}
+
+export async function getAllOAuthStates(db: D1Database): Promise<any[]> {
+  const result = await db.prepare(`
+    SELECT * FROM oauth_state ORDER BY created_at DESC
+  `).all();
+  
+  return result.results || [];
+}

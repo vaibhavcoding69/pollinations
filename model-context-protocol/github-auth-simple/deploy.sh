@@ -13,7 +13,8 @@ export $(grep -v '^#' .dev.vars | xargs)
 npx wrangler deploy --env production \
   --var "GITHUB_CLIENT_ID:$GITHUB_CLIENT_ID" \
   --var "GITHUB_CLIENT_SECRET:$GITHUB_CLIENT_SECRET" \
-  --var "JWT_SECRET:$JWT_SECRET"
+  --var "JWT_SECRET:$JWT_SECRET" \
+  --var "ADMIN_API_KEY:$ADMIN_API_KEY"
 
 # Success message
 echo "Deployment completed successfully!"
