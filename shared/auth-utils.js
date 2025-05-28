@@ -474,14 +474,7 @@ export async function shouldBypassQueue(req, { legacyTokens, allowlist }) {
       referrerLog('No legacy token found in referrer');
     }
   
-    // 3.5️⃣ Special check for catgpt referrer
-    if (refStr.toLowerCase().includes('catgpt')) {
-      referrerLog('✅ CatGPT referrer detected: %s', refStr);
-      debugInfo.authResult = 'CATGPT_REFERRER';
-      debugInfo.catgptMatch = true;
-      log('Queue bypass granted: CATGPT_REFERRER');
-      return { bypass:true, reason:'CATGPT_REFERRER', userId:null, debugInfo };
-    }
+    // CatGPT special handling removed - now uses standard tier-based routing
   
     // 4️⃣ Check allow-listed domain
     referrerLog('Checking referrer against %d allowlisted domains', debugInfo.allowlistCount);
