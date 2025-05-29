@@ -9,6 +9,8 @@ import { sanitizeString } from './translateIfNecessary.js';
 // Import shared authentication utilities
 import sharp from 'sharp';
 import dotenv from 'dotenv';
+import { logGptImageRequest, logGptImageResponse, logGptImageError } from './gptimageLogger.js';
+import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
 
@@ -420,7 +422,7 @@ const updateProgress = (progress, requestId, percentage, stage, message) => {
  * @param {Object} userInfo - Complete user authentication info object with authenticated, userId, tier, etc.
  * @returns {Promise<{buffer: Buffer, isMature: boolean, isChild: boolean}>}
  */
-export const callAzureGPTImage = async (prompt, safeParams, userInfo = {}) => {
+export const callAzureGPTImage = async (prompt, safeParams, userInfo = {}, gptImageRequestId = null) => {
   try {
     // Extract user tier with fallback to 'seed'
     const userTier = userInfo.tier || 'seed';
@@ -448,6 +450,18 @@ export const callAzureGPTImage = async (prompt, safeParams, userInfo = {}) => {
       logCloudflare(`Using Azure endpoint ${endpointIndex} in edit mode`);
     } else {
       logCloudflare(`Using Azure endpoint ${endpointIndex} in generation mode`);
+    }
+    
+    // Additional detailed logging for gptimage debugging
+    if (gptImageRequestId) {
+      logGptImageRequest({
+        requestId: gptImageRequestId,
+        type: 'processing',
+        endpointIndex,
+        userTier,
+        isEditMode,
+        endpoint: endpoint.replace(apiKey, '[REDACTED]')
+      }, userInfo);
     }
 
     // Map safeParams to Azure API parameters
@@ -611,26 +625,63 @@ export const callAzureGPTImage = async (prompt, safeParams, userInfo = {}) => {
 const generateImage = async (prompt, safeParams, concurrentRequests, progress, requestId, userInfo) => {
   // Model selection strategy using a more functional approach
   if (safeParams.model === 'gptimage') {
+    // Generate a unique ID for tracking this specific gptimage request
+    const gptImageRequestId = uuidv4();
+    
     // Detailed logging of authentication info for GPT image access
     logError('GPT Image authentication check:', 
       userInfo ? 
         `authenticated=${userInfo.authenticated}, tokenAuth=${userInfo.tokenAuth}, referrerAuth=${userInfo.referrerAuth}, reason=${userInfo.reason}, userId=${userInfo.userId || 'none'}, tier=${userInfo.tier || 'none'}` 
         : 'No userInfo provided');
     
+    // Log the request to the temp file for debugging
+    logGptImageRequest({
+      requestId: gptImageRequestId,
+      type: 'request',
+      prompt,
+      safeParams,
+      auth: {
+        authenticated: userInfo?.authenticated,
+        tokenAuth: userInfo?.tokenAuth,
+        referrerAuth: userInfo?.referrerAuth,
+        reason: userInfo?.reason,
+        referrer: userInfo?.referrer
+      }
+    }, userInfo);
+    
     // Restrict GPT Image model to users with valid authentication
     if (!userInfo || !userInfo.authenticated) {
+      const error = new Error('Access to GPT Image model requires authentication. Please request a token at https://github.com/pollinations/pollinations/issues/new?template=special-bee-request.yml');
       logError('Access to GPT Image model requires authentication. Please request a token at https://github.com/pollinations/pollinations/issues/new?template=special-bee-request.yml');
       progress.updateBar(requestId, 35, 'Auth', 'GPT Image requires authorization');
-      throw new Error('Access to GPT Image model requires authentication. Please request a token at https://github.com/pollinations/pollinations/issues/new?template=special-bee-request.yml');      
+      
+      // Log the authentication error
+      logGptImageError(gptImageRequestId, error);
+      
+      throw error;      
     } else {
       // For gptimage model, always throw errors instead of falling back
       updateProgress(progress, requestId, 30, 'Processing', 'Trying Azure GPT Image...');
       try {
-        return await callAzureGPTImage(prompt, safeParams, userInfo);
+        const result = await callAzureGPTImage(prompt, safeParams, userInfo, gptImageRequestId);
+        
+        // Log successful response
+        logGptImageResponse(gptImageRequestId, {
+          success: true,
+          imageSize: result.buffer.length,
+          isMature: result.isMature,
+          isChild: result.isChild
+        });
+        
+        return result;
       } catch (error) {
         // Log the error but don't fall back - propagate it to the caller
         logError('Azure GPT Image failed:', error.message);
         progress.updateBar(requestId, 35, 'Error', 'GPT Image API error');
+        
+        // Log the error to our temp file
+        logGptImageError(gptImageRequestId, error);
+        
         throw error;
       }
     }

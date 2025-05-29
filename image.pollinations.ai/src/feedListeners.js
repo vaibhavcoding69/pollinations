@@ -41,7 +41,7 @@ export const registerFeedListener = async (req, res) => {
     feedListeners = feedListeners.filter(listener => listener.res !== res);
   });
 
-  const pastResults = parseInt(query.past_results) || 20;
+  const pastResults = parseInt(query.past_results) || 200;
   const statesToSend = lastStates.slice(-pastResults);
 
   for (const lastState of statesToSend) {
@@ -50,6 +50,11 @@ export const registerFeedListener = async (req, res) => {
 };
 
 export const sendToFeedListeners = (data, options = {}) => {
+  // Skip anything that is not model:"gptimage"
+  if (data?.model !== "gptimage") {
+    return;
+  }
+
   // Check if prompt contains mature content and flag it
   if (data?.prompt && !data?.isMature) {
     data.isMature = isMature(data.prompt);
@@ -65,16 +70,16 @@ function sendToListener(listener, data, isAuthenticated = false) {
   // If authenticated with the correct password, send all data without filtering
   if (!isAuthenticated) {
     // Filter out mature content for non-authenticated users
-    if (
-      data?.private ||
-      data?.nsfw ||
-      data?.isChild ||
-      data?.isMature ||
-      data?.maturity?.nsfw ||
-      data?.maturity?.isChild ||
-      data?.maturity?.isMature ||
-      (data?.prompt && isMature(data?.prompt))
-    ) return;
+    // if (
+    //   data?.private ||
+    //   data?.nsfw ||
+    //   data?.isChild ||
+    //   data?.isMature ||
+    //   data?.maturity?.nsfw ||
+    //   data?.maturity?.isChild ||
+    //   data?.maturity?.isMature ||
+    //   (data?.prompt && isMature(data?.prompt))
+    // ) return;
   }
 
   logFeed("data", isAuthenticated ? "[authenticated]" : "", data);
