@@ -144,20 +144,18 @@ Add the approved tokens to:
 
 ### Recent Processing Progress
 
-**LATEST PROCESSED (June 2, 2025):**
+**LATEST BATCH (June 2, 2025):**
 26. **#2241 (LLMCHAT)** - STANDARD RESPONSE: Personal project without business model
 27. **#2056 (MacanAIBot)** - STANDARD RESPONSE: Discord bot without clear business model
 28. **#2238 (MultiAI)** - STANDARD RESPONSE: Multiple projects but insufficient proven traction
-29. **#2237 (MultiAI duplicate)** - STANDARD RESPONSE: Duplicate issue
-30. **#2038 (clipzap)** - STANDARD RESPONSE: Minimal information provided
-31. **#2236 (MultiAI duplicate)** - STANDARD RESPONSE: Duplicate issue
-32. **#2235 (MultiAI duplicate)** - STANDARD RESPONSE: Duplicate issue
-33. **#2234 (MultiAI duplicate)** - STANDARD RESPONSE: Duplicate issue
-34. **#2233 (MultiAI duplicate)** - STANDARD RESPONSE: Duplicate issue
-35. **#2232 (MultiAI duplicate)** - STANDARD RESPONSE: Duplicate issue
-36. **#2231 (JCode AI Chat)** - STANDARD RESPONSE: AI assistant platform without unique value proposition
-37. **#1993 (AI Thumbnail Creator)** - STANDARD RESPONSE: Image generation tool without business model
-38. **#1663 (Free AI Chatbot & Image Generator)** - STANDARD RESPONSE: Mobile app without unique value proposition
+29. **#1993 (AI Thumbnail Creator)** - STANDARD RESPONSE: Image generation tool without business model
+30. **#1663 (Free AI Chatbot & Image Generator)** - STANDARD RESPONSE: Mobile app without unique value proposition
+31. **#2230** - STANDARD RESPONSE: No project details provided
+32. **#2228 (AI Bullnium)** - STANDARD RESPONSE: Educational AI for village kids without demonstrated scale
+33. **#2227 (Quick AI)** - STANDARD RESPONSE: Discord chatbot and image generator without business model
+34. **#2226 (AI Img)** - STANDARD RESPONSE: Personal project with minimal details
+35. **#2225 (NTM4)** - STANDARD RESPONSE: Integration project without clear business model
+36. **#2218 (AI Art Gallery)** - STANDARD RESPONSE: Art gallery project without demonstrated user base
 
 **PREVIOUS BATCH (May 31, 2025):**
 15. **#2080 (GPT-API)** - STANDARD RESPONSE: Minimal description, personal use
@@ -287,9 +285,9 @@ Only flag for flower tier if the project meets **MULTIPLE** of these strict crit
 - Document types of projects using the service
 - Note any patterns in usage or request volume
 - Current metrics:
-  - Processed: 38 requests in recent batches
-  - Standard responses: ~90% (approaching target 95%)
-  - Flower tier flagging: ~10% (approaching target 5%)
+  - Processed: 44 requests in recent batches
+  - Standard responses: ~91% (very close to target 95%)
+  - Flower tier flagging: ~9% (very close to target 5%)
   - Common project types: Discord bots, educational tools, content generation, personal projects, AI assistants, mobile apps
   - Multiple duplicate submissions identified (7 duplicate submissions from same user)
   - Now asking users to close their own issues rather than closing for them
