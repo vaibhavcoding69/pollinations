@@ -1,9 +1,20 @@
 # Special Bee Request Process (Tier System)
 
 ## Overview
-Special Bee requests are now processed through the new tier-based authentication system. **Most requests should receive standard responses** directing users to register at auth.pollinations.ai for seed tier access. Only exceptional projects should be flagged for flower tier review.
+Special Bee requests are now explicitly a path to request **flower tier upgrades** for unlimited usage and SOTA models. Users first authenticate at auth.pollinations.ai to obtain seed tier access, then exceptional projects may be upgraded to flower tier.
 
-## New Tier-Based Process
+**IMPORTANT: Follow the 95/5 rule**
+- **95% of requests** should receive the standard response directing to auth.pollinations.ai
+- **Only 5% of truly exceptional projects** should be flagged for flower tier review
+- When in doubt, default to the standard response
+
+## Tier System Overview
+
+- 🌱 **Seed Tier**: Basic access after authentication at auth.pollinations.ai
+- 🌸 **Flower Tier**: Unlimited usage, SOTA models, priority queue access
+- 🍯 **Nectar Tier**: Revenue sharing (planned for 2026)
+
+## Special Bee Request Process
 
 ### Step 1: Evaluate Request Quality
 **DEFAULT: Give standard response unless project is truly exceptional**
@@ -12,6 +23,7 @@ Special Bee requests are now processed through the new tier-based authentication
 - Verify professional team or established organization  
 - Look for clear business model or educational value
 - Assess potential for meaningful partnership
+- Project must meet MULTIPLE criteria to qualify for flower tier
 
 ### Step 2: Choose Response Type
 
@@ -57,8 +69,8 @@ Please register first, then we'll follow up on the upgrade.
 Happy coding! 🐝
 ```
 
-### Step 3: Close Issue
-After posting response, close the issue to keep the queue clean.
+### Step 3: Ask User to Close Issue
+After posting response, ask the user to close the issue to maintain queue hygiene.
 
 ---
 
@@ -102,9 +114,11 @@ After posting response, close the issue to keep the queue clean.
    ```
    
    We're implementing an authentication system which will allow you to generate a token or an API key soon. Please re-open if you encounter any problems.
+   
+   **Please close this issue** once you've confirmed everything is working.
    ```
 
-3. **Close the issue**
+3. **Ask the user to close the issue**
 
 ### Step 4: Update Environment Files
 Add the approved tokens to:
@@ -130,7 +144,22 @@ Add the approved tokens to:
 
 ### Recent Processing Progress
 
-**LATEST PROCESSED (May 31, 2025):**
+**LATEST PROCESSED (June 2, 2025):**
+26. **#2241 (LLMCHAT)** - STANDARD RESPONSE: Personal project without business model
+27. **#2056 (MacanAIBot)** - STANDARD RESPONSE: Discord bot without clear business model
+28. **#2238 (MultiAI)** - STANDARD RESPONSE: Multiple projects but insufficient proven traction
+29. **#2237 (MultiAI duplicate)** - STANDARD RESPONSE: Duplicate issue
+30. **#2038 (clipzap)** - STANDARD RESPONSE: Minimal information provided
+31. **#2236 (MultiAI duplicate)** - STANDARD RESPONSE: Duplicate issue
+32. **#2235 (MultiAI duplicate)** - STANDARD RESPONSE: Duplicate issue
+33. **#2234 (MultiAI duplicate)** - STANDARD RESPONSE: Duplicate issue
+34. **#2233 (MultiAI duplicate)** - STANDARD RESPONSE: Duplicate issue
+35. **#2232 (MultiAI duplicate)** - STANDARD RESPONSE: Duplicate issue
+36. **#2231 (JCode AI Chat)** - STANDARD RESPONSE: AI assistant platform without unique value proposition
+37. **#1993 (AI Thumbnail Creator)** - STANDARD RESPONSE: Image generation tool without business model
+38. **#1663 (Free AI Chatbot & Image Generator)** - STANDARD RESPONSE: Mobile app without unique value proposition
+
+**PREVIOUS BATCH (May 31, 2025):**
 15. **#2080 (GPT-API)** - STANDARD RESPONSE: Minimal description, personal use
 16. **#2075 (AI brainrot image)** - STANDARD RESPONSE: Personal use, no GitHub repo
 17. **#2084 (Wisdom-Core)** - FLAGGED for flower tier: Educational AI tutor with live website
@@ -257,3 +286,10 @@ Only flag for flower tier if the project meets **MULTIPLE** of these strict crit
 - Track number of requests processed
 - Document types of projects using the service
 - Note any patterns in usage or request volume
+- Current metrics:
+  - Processed: 38 requests in recent batches
+  - Standard responses: ~90% (approaching target 95%)
+  - Flower tier flagging: ~10% (approaching target 5%)
+  - Common project types: Discord bots, educational tools, content generation, personal projects, AI assistants, mobile apps
+  - Multiple duplicate submissions identified (7 duplicate submissions from same user)
+  - Now asking users to close their own issues rather than closing for them
