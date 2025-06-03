@@ -1,0 +1,20 @@
+name = "r2-to-d1-migration"
+main = "index.js"
+compatibility_date = "2023-10-30"
+
+# Use a larger amount of CPU for processing
+compatibility_flags = ["nodejs_compat"]
+
+# Bind the R2 bucket containing the original images - using remote access
+[[r2_buckets]]
+binding = "IMAGE_BUCKET"
+bucket_name = "pollinations-images"
+preview_bucket_name = "pollinations-images" # This ensures we use the real bucket during development
+
+# To access the bucket remotely, run: npx wrangler dev --remote
+
+# Bind the D1 database for metadata storage
+[[d1_databases]]
+binding = "METADATA_DB"
+database_name = "image-metadata-local"
+database_id = "c334f127-7e95-43d7-8c97-206cf3c200d2"
