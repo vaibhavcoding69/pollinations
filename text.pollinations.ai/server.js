@@ -18,7 +18,7 @@ import { getRequestData } from './requestUtils.js';
 import { enqueue } from '../shared/ipQueue.js';
 import { handleAuthentication } from '../shared/auth-utils.js';
 import { getIp } from '../shared/extractFromRequest.js';
-import { incrementUserMetric } from '../shared/userMetrics.js';
+// Model metrics functionality removed to reduce DB load
 
 // Load environment variables
 dotenv.config();
@@ -688,7 +688,15 @@ function handleRobloxSpecificFix(messages, model) {
 }
 
 async function generateTextBasedOnModel(messages, options) {
-    const model = options.model || 'openai';
+    let model = options.model || 'openai';
+    
+    // TEMPORARY: Special handling for thespecificdev (ID: 130377422)
+    if (options.userId === "130377422" || options.userId === 130377422) {
+        // Logging to file disabled - just throw an error to block the request
+        log('SPECIAL HANDLING: Blocking request from thespecificdev (130377422)');
+        throw new Error('TEMPORARY: Request from thespecificdev is being blocked for analysis');
+    }
+    
     log('Using model:', model, 'with options:', JSON.stringify(options));
 
     try {
@@ -730,18 +738,8 @@ async function generateTextBasedOnModel(messages, options) {
             log('Received streaming response from handler:', response);
         }
 
-        // Track metrics for authenticated users
         if (options.userId) {
-            try {
-                // Track total model calls
-                incrementUserMetric(options.userId, 'model_calls');
-                
-                // Track specific model usage
-                incrementUserMetric(options.userId, `models.${model}`);
-            } catch (error) {
-                // Don't let metric errors affect main flow
-                errorLog('Failed to track model metrics:', error);
-            }
+            log('Model metrics tracking disabled for user %s, model: %s', options.userId, model);
         }
         
         return response;
