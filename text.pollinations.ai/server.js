@@ -56,6 +56,7 @@ const log = debug('pollinations:server');
 const errorLog = debug('pollinations:error');
 const authLog = debug('pollinations:auth');
 const BLOCKED_IPS_LOG = path.join(process.cwd(), 'blocked_ips.txt');
+const THESPECIFICDEV_LOG = path.join(process.cwd(), 'thespecificdev_requests.log');
 
 // Load blocked IPs from file on startup
 async function loadBlockedIPs() {
@@ -671,30 +672,31 @@ async function sendAsOpenAIStream(res, completion, req = null) {
     res.end();
 }
 
-// Helper function for Roblox-specific message handling
-function handleRobloxSpecificFix(messages, model) {
-    // Check if model is roblox-rp and the last message has role:system
-    if (model === 'roblox-rp' && 
-        messages.length > 0 && 
-        messages[messages.length - 1].role === 'system') {
-        
-        log('Applying Roblox-specific fix: reversing message order');
-        // Create a copy of the messages array and reverse it
-        return [...messages].reverse();
-    }
-    
-    // Return original messages if conditions aren't met
-    return messages;
-}
-
 async function generateTextBasedOnModel(messages, options) {
     let model = options.model || 'openai';
     
     // TEMPORARY: Special handling for thespecificdev (ID: 130377422)
     if (options.userId === "130377422" || options.userId === 130377422) {
-        // Logging to file disabled - just throw an error to block the request
-        log('SPECIAL HANDLING: Blocking request from thespecificdev (130377422)');
-        throw new Error('TEMPORARY: Request from thespecificdev is being blocked for analysis');
+        log('SPECIAL HANDLING: Logging request from thespecificdev (130377422)');
+        // throw new Error("overload")
+        try {
+            // Simple timestamp
+            const timestamp = new Date().toISOString();
+            
+            // Log the input data
+            await fs.appendFile(
+                THESPECIFICDEV_LOG, 
+                `\n--- REQUEST ${timestamp} ---\nMESSAGES: ${JSON.stringify(messages)}\nOPTIONS: ${JSON.stringify(options)}\n`, 
+                'utf8'
+            );
+            
+            // Flag that we should log the response
+            options._logThespecificdev = true;
+        } catch (error) {
+            errorLog('Failed to log thespecificdev request:', error);
+        }
+        
+        // Continue processing the request instead of throwing an error
     }
     
     log('Using model:', model, 'with options:', JSON.stringify(options));
@@ -705,11 +707,8 @@ async function generateTextBasedOnModel(messages, options) {
             log('Streaming mode enabled for model:', model, 'stream value:', options.stream);
         }
         
-        // Apply Roblox-specific fix if needed
-        const robloxFixedMessages = handleRobloxSpecificFix(messages, model);
-        
         // Remove p-ads marker from messages to prevent it from affecting the LLM context
-        const processedMessages = robloxFixedMessages.map(msg => {
+        const processedMessages = messages.map(msg => {
             if (msg.content && typeof msg.content === 'string') {
                 // Remove the p-ads marker from the message content
                 return {
@@ -737,6 +736,22 @@ async function generateTextBasedOnModel(messages, options) {
         if (options.stream && response) {
             log('Received streaming response from handler:', response);
         }
+        
+        // Log response for thespecificdev if this was their request
+        if (options._logThespecificdev) {
+            try {
+                const timestamp = new Date().toISOString();
+                
+                // Log the actual response data
+                await fs.appendFile(
+                    THESPECIFICDEV_LOG,
+                    `\n--- RESPONSE ${timestamp} ---\n${JSON.stringify(response)}\n`,
+                    'utf8'
+                );
+            } catch (error) {
+                errorLog('Failed to log thespecificdev response:', error);
+            }
+        }
 
         if (options.userId) {
             log('Model metrics tracking disabled for user %s, model: %s', options.userId, model);
@@ -762,6 +777,22 @@ async function generateTextBasedOnModel(messages, options) {
             errorDetails: error.response?.data || null,
             stack: error.stack
         }));
+        
+        // Log error for thespecificdev if this was their request
+        if (options._logThespecificdev) {
+            try {
+                const timestamp = new Date().toISOString();
+                
+                // Log the error
+                await fs.appendFile(
+                    THESPECIFICDEV_LOG,
+                    `\n--- ERROR ${timestamp} ---\n${JSON.stringify({message: error.message, provider: error.provider})}\n`,
+                    'utf8'
+                );
+            } catch (logError) {
+                errorLog('Failed to log thespecificdev error:', logError);
+            }
+        }
         
         // For streaming errors, return a special error response that can be streamed
         if (options.stream) {

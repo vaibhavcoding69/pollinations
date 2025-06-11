@@ -44,7 +44,7 @@ const MODEL_MAPPING = {
     // Cloudflare models
     //'qwen-qwq': '@cf/qwen/qwq-32b',
     // DeepSeek models
-    'deepseek': 'DeepSeek-V3-0324',
+    // 'deepseek': 'DeepSeek-V3-0324',
     // Custom endpoints
     'elixposearch': 'elixposearch-endpoint'
 };
