@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import debug from 'debug';
+import { TransformStream } from 'node:stream/web';
 import {
     validateAndNormalizeMessages, 
     cleanNullAndUndefined,
@@ -40,7 +41,9 @@ export function createOpenAICompatibleClient(config) {
         formatResponse = null,
         additionalHeaders = {},
         transformRequest = null,
-        supportsSystemMessages = true
+        supportsSystemMessages = true,
+        onResponseComplete = null,
+        onStreamComplete = null
     } = config;
 
     const log = debug(`pollinations:${providerName.toLowerCase()}`);
@@ -224,13 +227,57 @@ export function createOpenAICompatibleClient(config) {
                         })
                     );
                 }
+                // Store all stream responses for logging purposes
+                const streamResponses = [];
+                
+                // Create a new stream that collects chunks for logging while passing them through
+                const loggableStream = new TransformStream({
+                    transform(chunk, controller) {
+                        // Parse the chunk if it's SSE format
+                        try {
+                            if (chunk.toString().startsWith('data: ')) {
+                                const dataStr = chunk.toString().replace(/^data: /, '');
+                                if (dataStr.trim() && dataStr !== '[DONE]') {
+                                    const jsonData = JSON.parse(dataStr);
+                                    streamResponses.push(jsonData);
+                                }
+                            }
+                        } catch (e) {
+                            // Ignore parsing errors, just collect raw chunks
+                            streamResponses.push(chunk);
+                        }
+                        // Pass the chunk downstream unchanged
+                        controller.enqueue(chunk);
+                    },
+                    flush(controller) {
+                        // When the stream ends, call the onStreamComplete hook if provided
+                        if (typeof onStreamComplete === 'function') {
+                            log(`[${requestId}] Calling onStreamComplete hook with ${streamResponses.length} collected chunks`);
+                            // Use setTimeout to avoid blocking the stream closure
+                            setTimeout(async () => {
+                                try {
+                                    await onStreamComplete(finalRequestBody, streamResponses, startTime, requestId);
+                                } catch (hookError) {
+                                    errorLog(`[${requestId}] Error in onStreamComplete hook:`, hookError);
+                                    // Non-blocking - we don't wait for this to complete
+                                }
+                            }, 0);
+                        }
+                    }
+                });
+                
+                // Connect the original stream to our logging-enabled stream
+                if (streamToReturn) {
+                    streamToReturn.pipe(loggableStream);
+                }
+                
                 return {
                     id: `${providerName.toLowerCase()}-${requestId}`,
                     object: 'chat.completion.chunk',
                     created: Math.floor(startTime / 1000),
                     model: modelName,
                     stream: true,
-                    responseStream: streamToReturn, // This is the (possibly transformed) stream
+                    responseStream: loggableStream, // Use our logging-enabled stream
                     providerName,
                     choices: [{ delta: { content: '' }, finish_reason: null, index: 0 }],
                     error: !response.ok ? { message: `${providerName} API error: ${response.status} ${response.statusText}` } : undefined
@@ -284,6 +331,20 @@ export function createOpenAICompatibleClient(config) {
                 completionTokens: data.usage?.completion_tokens,
                 totalTokens: data.usage?.total_tokens
             });
+            
+            // Call onResponseComplete hook if provided
+            if (typeof onResponseComplete === 'function') {
+                log(`[${requestId}] Calling onResponseComplete hook`);
+                try {
+                    const modifiedData = await onResponseComplete(finalRequestBody, data, startTime, requestId);
+                    // Don't try to reassign to data (it's a constant)
+                    // Just log completion of the hook
+                    log(`[${requestId}] onResponseComplete hook completed`);
+                } catch (hookError) {
+                    errorLog(`[${requestId}] Error in onResponseComplete hook:`, hookError);
+                    // Continue execution even if hook fails
+                }
+            }
 
             // Use custom response formatter if provided
             // Pass only choices[0] to formatResponse, reconstruct after
