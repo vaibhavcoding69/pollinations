@@ -70,12 +70,22 @@ async function logNonStreamingRequest(providerRequest, providerResponse, startTi
       }
     };
     log('Making Helicone logging request');
+    
+    // Prepare headers for the Helicone request
+    const headers = {
+      'Authorization': `Bearer ${HELICONE_API_KEY}`,
+      'Content-Type': 'application/json'
+    };
+    
+    // Add Helicone-User-Id header if userId is provided in metadata
+    if (metadata?.userId) {
+      headers['Helicone-User-Id'] = metadata.userId;
+      log(`Adding user ID to Helicone request: ${metadata.userId}`);
+    }
+    
     const response = await fetch(HELICONE_LOGGING_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${HELICONE_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
+      headers,
       body: JSON.stringify(payload)
     });
     
