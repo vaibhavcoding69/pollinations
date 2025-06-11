@@ -497,8 +497,14 @@ export const generateTextPortkey = createOpenAICompatibleClient({
     },
 
     // Transform request to add Azure-specific headers based on the model
-    transformRequest: async (requestBody) => {
+    transformRequest: async (requestBody, options) => {
         try {
+            // Copy userId from options to requestBody if it exists
+            if (options && options.userId && !requestBody.userId) {
+                log(`Adding userId from options to requestBody: ${options.userId}`);
+                requestBody.userId = options.userId;
+            }
+            
             // Get the model name from the request (already mapped by genericOpenAIClient)
             const modelName = requestBody.model; // This is already mapped by genericOpenAIClient
 
@@ -582,9 +588,14 @@ export const generateTextPortkey = createOpenAICompatibleClient({
     providerName: 'Portkey Gateway',
     
     // Add Helicone logging for non-streaming responses
-    onResponseComplete: async (requestBody, responseData, startTime, requestId) => {
+    onResponseComplete: async (requestBody, responseData, startTime, requestId, options) => {
         const endTime = Date.now();
         log(`[${requestId}] Logging non-streaming request to Helicone`);
+        
+        // Get userId from options (which comes from server authentication) or fallback to requestBody
+        const userId = (options && options.userId) || requestBody.userId || 'anonymous';
+        log(`[${requestId}] Using userId for Helicone logging: ${userId}`);
+        
         try {
             await logNonStreamingRequest(
                 requestBody,
@@ -594,7 +605,7 @@ export const generateTextPortkey = createOpenAICompatibleClient({
                 {
                     requestId,
                     model: responseData.model || requestBody.model,
-                    userId: requestBody._userId || 'anonymous',
+                    userId: userId,
                     usage: responseData.usage
                 }
             );
@@ -606,9 +617,14 @@ export const generateTextPortkey = createOpenAICompatibleClient({
     },
     
     // Add Helicone logging for streaming responses
-    onStreamComplete: async (requestBody, streamResponses, startTime, requestId) => {
+    onStreamComplete: async (requestBody, streamResponses, startTime, requestId, options) => {
         const endTime = Date.now();
         log(`[${requestId}] Logging streaming request to Helicone`);
+        
+        // Get userId from options (which comes from server authentication) or fallback to requestBody
+        const userId = (options && options.userId) || requestBody.userId || 'anonymous';
+        log(`[${requestId}] Using userId for Helicone streaming logging: ${userId}`);
+        
         try {
             await logStreamingRequest(
                 requestBody,
@@ -618,7 +634,7 @@ export const generateTextPortkey = createOpenAICompatibleClient({
                 {
                     requestId,
                     model: requestBody.model,
-                    userId: requestBody._userId || 'anonymous',
+                    userId: userId,
                     streaming: true
                 }
             );

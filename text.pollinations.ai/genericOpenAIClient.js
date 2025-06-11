@@ -256,7 +256,8 @@ export function createOpenAICompatibleClient(config) {
                             // Use setTimeout to avoid blocking the stream closure
                             setTimeout(async () => {
                                 try {
-                                    await onStreamComplete(finalRequestBody, streamResponses, startTime, requestId);
+                                    // Pass normalizedOptions as the fifth parameter to ensure userId is available
+                                    await onStreamComplete(finalRequestBody, streamResponses, startTime, requestId, normalizedOptions);
                                 } catch (hookError) {
                                     errorLog(`[${requestId}] Error in onStreamComplete hook:`, hookError);
                                     // Non-blocking - we don't wait for this to complete
@@ -336,7 +337,8 @@ export function createOpenAICompatibleClient(config) {
             if (typeof onResponseComplete === 'function') {
                 log(`[${requestId}] Calling onResponseComplete hook`);
                 try {
-                    const modifiedData = await onResponseComplete(finalRequestBody, data, startTime, requestId);
+                    // Pass normalizedOptions as the fifth parameter to ensure userId is available
+                    const modifiedData = await onResponseComplete(finalRequestBody, data, startTime, requestId, normalizedOptions);
                     // Don't try to reassign to data (it's a constant)
                     // Just log completion of the hook
                     log(`[${requestId}] onResponseComplete hook completed`);
