@@ -12,6 +12,7 @@ import dotenv from 'dotenv';
 // Import GPT Image logging utilities
 import { logGptImagePrompt, logGptImageError } from './utils/gptImageLogger.js';
 import { analyzeTextSafety, analyzeImageSafety, formatViolations } from './utils/azureContentSafety.js';
+import { sendTinybirdEvent } from './observability/tinybirdTracker.js';
 
 dotenv.config();
 
@@ -27,6 +28,30 @@ const TARGET_PIXEL_COUNT = 1024 * 1024; // 1 megapixel
 // Performance tracking variables
 let total_start_time = Date.now();
 let accumulated_fetch_duration = 0;
+
+/**
+ * Estimates the number of tokens in a text string
+ * Uses approximation of ~4 characters per token (GPT standard)
+ * @param {string} text - The text to estimate tokens for
+ * @returns {number} - Estimated token count
+ */
+function estimateTextTokens(text) {
+  if (!text) return 0;
+  // GPT models typically use ~4 characters per token on average
+  // This is a rough approximation but good enough for cost estimation
+  return Math.ceil(text.length / 4);
+}
+
+/**
+ * Determines if an image qualifies as 'low' detail based on dimensions
+ * Images ≤ 512×512 are considered low detail for GPT pricing
+ * @param {number} width - Image width
+ * @param {number} height - Image height
+ * @returns {'low'|'high'} - Detail level
+ */
+function getImageDetailLevel(width, height) {
+  return (width <= 512 && height <= 512) ? 'low' : 'high';
+}
 
 /**
  * Calculates scaled dimensions while maintaining aspect ratio
@@ -155,7 +180,7 @@ export const callComfyUI = async (prompt, safeParams, concurrentRequests) => {
         })
         .jpeg()
         .toBuffer();
-      return { buffer: resizedBuffer, ...rest };
+      return { buffer: resizedBuffer, steps, ...rest };
     }
 
     // Convert to JPEG even if no resize was needed
@@ -165,7 +190,13 @@ export const callComfyUI = async (prompt, safeParams, concurrentRequests) => {
         mozjpeg: true
       })
       .toBuffer();
-    return { buffer: jpegBuffer, ...rest };
+    return { 
+      buffer: jpegBuffer, 
+      steps, 
+      scaledWidth, 
+      scaledHeight,
+      ...rest 
+    };
 
   } catch (e) {
     logError('Error in callComfyUI:', e);
@@ -194,9 +225,14 @@ async function callCloudflareModel(prompt, safeParams, modelPath, additionalPara
   const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/${modelPath}`;
   logCloudflare(`Calling Cloudflare model: ${modelPath}`, url);
 
+  // Calculate scaled dimensions for cost tracking
+  const requestedWidth = safeParams.width || 1024;
+  const requestedHeight = safeParams.height || 1024;
+  const { scaledWidth, scaledHeight } = calculateScaledDimensions(requestedWidth, requestedHeight);
+
   // Round width and height to nearest multiple of 8
-  const width = roundToMultipleOf8(safeParams.width || 1024);
-  const height = roundToMultipleOf8(safeParams.height || 1024);
+  const width = roundToMultipleOf8(scaledWidth);
+  const height = roundToMultipleOf8(scaledHeight);
 
   const requestBody = {
     prompt: truncatedPrompt,
@@ -248,17 +284,36 @@ async function callCloudflareModel(prompt, safeParams, modelPath, additionalPara
     imageBuffer = Buffer.from(data.result.image, 'base64');
   }
   
-  return { buffer: imageBuffer, isMature: false, isChild: false };
+  return { 
+    buffer: imageBuffer, 
+    isMature: false, 
+    isChild: false,
+    scaledWidth,
+    scaledHeight
+  };
 }
 
 /**
  * Calls the Cloudflare Flux API to generate images
  * @param {string} prompt - The prompt for image generation
  * @param {Object} safeParams - The parameters for image generation
- * @returns {Promise<{buffer: Buffer, isMature: boolean, isChild: boolean}>}
+ * @returns {Promise<{buffer: Buffer, isMature: boolean, isChild: boolean, steps: number}>}
  */
 async function callCloudflareFlux(prompt, safeParams) {
-  return callCloudflareModel(prompt, safeParams, 'black-forest-labs/flux-1-schnell', { steps: 4 });
+  // Use steps from safeParams if provided, otherwise default to 25
+  let steps = safeParams.steps || 25;
+  
+  // Validate steps range (1-50 for Flux-1-Schnell)
+  if (steps < 1) {
+    steps = 1;
+    logCloudflare(`Steps value ${safeParams.steps} was below minimum, clamped to 1`);
+  } else if (steps > 50) {
+    steps = 50;
+    logCloudflare(`Steps value ${safeParams.steps} was above maximum, clamped to 50`);
+  }
+  
+  const result = await callCloudflareModel(prompt, safeParams, 'black-forest-labs/flux-1-schnell', { steps });
+  return { ...result, steps }; // Include steps in the result
 }
 
 /**
@@ -371,7 +426,7 @@ const updateProgress = (progress, requestId, percentage, stage, message) => {
  * @param {Object} safeParams - The parameters for image generation or editing
  * @param {Object} userInfo - User authentication info object
  * @param {number} endpointIndex - The endpoint index to use (1 or 2)
- * @returns {Promise<{buffer: Buffer, isMature: boolean, isChild: boolean}>}
+ * @returns {Promise<{buffer: Buffer, isMature: boolean, isChild: boolean, inputImageDimensions?: Array}>}
  */
 const callAzureGPTImageWithEndpoint = async (prompt, safeParams, userInfo, endpointIndex) => {
   const apiKey = process.env[`GPT_IMAGE_${endpointIndex}_AZURE_API_KEY`];
@@ -380,6 +435,9 @@ const callAzureGPTImageWithEndpoint = async (prompt, safeParams, userInfo, endpo
   if (!apiKey || !endpoint) {
     throw new Error(`Azure API key or endpoint ${endpointIndex} not found in environment variables`);
   }
+  
+  // Track input image dimensions for cost calculation
+  const inputImageDimensions = [];
   
   // Check if we need to use the edits endpoint instead of generations
   const isEditMode = safeParams.image && safeParams.image.length > 0;
@@ -461,6 +519,14 @@ const callAzureGPTImageWithEndpoint = async (prompt, safeParams, userInfo, endpo
               }
               
               const buffer = await imageResponse.buffer();
+              
+              // Extract actual image dimensions for cost calculation
+              const metadata = await sharp(buffer).metadata();
+              inputImageDimensions.push({
+                w: metadata.width,
+                h: metadata.height,
+                detail: getImageDetailLevel(metadata.width, metadata.height)
+              });
               
               // Only check safety after we've successfully fetched the image
               logCloudflare(`Checking safety of input image ${i+1}/${imageUrls.length}`);
@@ -568,6 +634,7 @@ const callAzureGPTImageWithEndpoint = async (prompt, safeParams, userInfo, endpo
     buffer: imageBuffer,
     isMature: false,  // Default assumption
     isChild: false,   // Default assumption
+    inputImageDimensions: inputImageDimensions.length > 0 ? inputImageDimensions : undefined
   };
 };
 
@@ -576,7 +643,7 @@ const callAzureGPTImageWithEndpoint = async (prompt, safeParams, userInfo, endpo
  * @param {string} prompt - The prompt for image generation or editing
  * @param {Object} safeParams - The parameters for image generation or editing
  * @param {Object} userInfo - Complete user authentication info object with authenticated, userId, tier, etc.
- * @returns {Promise<{buffer: Buffer, isMature: boolean, isChild: boolean}>}
+ * @returns {Promise<{buffer: Buffer, isMature: boolean, isChild: boolean, inputImageDimensions?: Array}>}
  */
 export const callAzureGPTImage = async (prompt, safeParams, userInfo = {}) => {
   try {
@@ -606,7 +673,7 @@ export const callAzureGPTImage = async (prompt, safeParams, userInfo = {}) => {
  * @param {Object} progress - Progress tracking object
  * @param {string} requestId - Request ID for progress tracking
  * @param {Object} userInfo - Complete user authentication info object with authenticated, userId, tier, etc.
- * @returns {Promise<{buffer: Buffer, isMature: boolean, isChild: boolean, [key: string]: any}>}
+ * @returns {Promise<{buffer: Buffer, isMature: boolean, isChild: boolean, inputImageDimensions?: Array, [key: string]: any}>}
  */
 const generateImage = async (prompt, safeParams, concurrentRequests, progress, requestId, userInfo) => {
   // Model selection strategy using a more functional approach
@@ -753,6 +820,8 @@ const processImageBuffer = async (buffer, maturityFlags, safeParams, metadataObj
  * @returns {Promise<{buffer: Buffer, isChild: boolean, isMature: boolean}>}
  */
 export async function createAndReturnImageCached(prompt, safeParams, concurrentRequests, originalPrompt, progress, requestId, wasTransformedForBadDomain = false, userInfo = {}) {
+  const startTime = Date.now();
+  
   try {
     // Update generation progress
     updateProgress(progress, requestId, 60, 'Generation', 'Calling API...');
@@ -787,8 +856,94 @@ export async function createAndReturnImageCached(prompt, safeParams, concurrentR
       requestId
     );
     
+    // Send telemetry to Tinybird for successful generation
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    
+    // Prepare image usage data for GPT-image-1 cost calculation
+    let imageUsage = null;
+    if (safeParams.model === 'gptimage' || safeParams.model === 'gpt-image-1') {
+      // Calculate text tokens from prompt
+      const textTokens = estimateTextTokens(prompt);
+      
+      // Use actual input image dimensions if available, otherwise empty array
+      const inImages = result.inputImageDimensions || [];
+      
+      // Calculate output image detail level based on quality setting and dimensions
+      const outImageDetail = safeParams.quality === 'low' ? 'low' : 
+                            getImageDetailLevel(safeParams.width, safeParams.height);
+      
+      imageUsage = {
+        textTokens,
+        inImages,
+        outImages: [{ 
+          w: safeParams.width, 
+          h: safeParams.height, 
+          detail: outImageDetail 
+        }],
+        cached: false // We can add caching detection later
+      };
+    }
+    
+    sendTinybirdEvent({
+      startTime: new Date(startTime),
+      endTime: new Date(endTime),
+      requestId,
+      model: safeParams.model,
+      duration,
+      status: 'success',
+      eventType: 'image_generation',
+      imageUsage,
+      imageParams: {
+        width: result.scaledWidth || safeParams.width,  // Use scaled dimensions if available
+        height: result.scaledHeight || safeParams.height,
+        quality: safeParams.quality,
+        isEditMode: !!(safeParams.image && safeParams.image.length > 0),
+        hasTransparentBackground: safeParams.transparent,
+        steps: result.steps  // Use actual steps from result
+      },
+      project: 'image.pollinations.ai',
+      environment: process.env.NODE_ENV || 'production',
+      user: userInfo.username || userInfo.userId || 'anonymous',
+      username: userInfo.username,
+      organization: userInfo.userId ? 'pollinations' : undefined,
+      tier: userInfo.tier || 'seed'
+    }).catch(err => {
+      logError('Failed to send telemetry to Tinybird', err);
+    });
+    
     return { buffer: processedBuffer, isChild, isMature };
   } catch (error) {
+    // Send error telemetry to Tinybird
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    
+    sendTinybirdEvent({
+      startTime: new Date(startTime),
+      endTime: new Date(endTime),
+      requestId,
+      model: safeParams.model,
+      duration,
+      status: 'error',
+      error,
+      eventType: 'image_generation',
+      imageParams: {
+        width: safeParams.width,
+        height: safeParams.height,
+        quality: safeParams.quality,
+        isEditMode: !!(safeParams.image && safeParams.image.length > 0),
+        steps: undefined  // Steps not available in error case
+      },
+      project: 'image.pollinations.ai',
+      environment: process.env.NODE_ENV || 'production',
+      user: userInfo.username || userInfo.userId || 'anonymous',
+      username: userInfo.username,
+      organization: userInfo.userId ? 'pollinations' : undefined,
+      tier: userInfo.tier || 'seed'
+    }).catch(err => {
+      logError('Failed to send error telemetry to Tinybird', err);
+    });
+    
     logError('Error in createAndReturnImageCached:', error);
     throw error;
   }
