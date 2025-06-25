@@ -1,4 +1,3 @@
-
 **🧠 Smart Caching System**
 - Launched AI-powered semantic image caching with 97%+ accuracy. Users get faster results by matching similar prompts instead of regenerating, reducing costs while improving experience.
 
@@ -39,3 +38,18 @@
 
 ### Professional Summary
 Digital-strategy leader with 20+ years in music, media & technology. Scaled several category-defining platforms (**Native Instruments → Beatport → Boiler Room**), steered corporate turnarounds and new-product launches, and now helps early-stage companies translate vision into revenue.
+
+---
+
+## Johnny – Advisory & Investment Proposal
+
+### Offering
+- **Performance Marketing Consultation**: Expert guidance on marketing strategies and performance optimization
+- **Hiring Pipeline Support**: Assistance with recruitment processes and talent acquisition strategies  
+- **Case Study Development**: Creation of performance case studies with detailed feedback and analysis
+- **Financial Support**: Small amount of cash investment for immediate operational needs
+
+### Requested Partnership Terms
+- Seeking percentage-based offering in exchange for contribution value (monetary and strategic)
+- Open to discussion on appropriate percentage based on assessed contribution impact
+- Flexible arrangement to match the value provided to Pollinations.AI growth
