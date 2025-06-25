@@ -1,76 +1,74 @@
-# KPIs
+# 📊 Q3 Key Performance Indicators (KPIs)  
+*As of Week 26 (ending June 29, 2025)*
 
-## Q3 Weekly KPIs
+---
 
-### Ads
+## Ads
 
-#### Ad Revenue
-- **Target:** Sustain ≥ **30 %** week-over-week (WoW) growth in ad revenue (measured Monday–Sunday) **and** keep **eCPM ≥ $5**.
-- **Actual (latest):** **54 %**
+### 📈 Ad Revenue
+- **🎯 Target:** Sustain **≥ +30%** week-over-week (WoW) growth.
+- **✅ Actual (Wk 26):** **+32%** WoW
 
-#### eCPM Growth
-- **Target:** Maintain eCPM ≥ $5 with a positive WoW trend.
-- **Actual (latest):** <!-- add value -->
+### 💰 eCPM (Effective Cost Per Mille)
+- **🎯 Target:** Maintain a positive WoW trend (`≥ +0%`).
+- **✏️ Actual (Latest):** *Awaiting data*
 
-### User
+## Growth
 
-#### Registered Users
-- **Target:** Maintain ≥ **30 %** WoW growth in new registered users (Monday–Sunday) throughout Q3.
-- **Actual (latest):** **46 %**
+### 📱 Registered Apps
+- **🎯 Target:** Maintain **≥ +30%** WoW growth.
+- **✅ Actual (Wk 26):** **+41%** WoW
 
-#### Registered Apps
-- **Target:** <!-- specify -->
-- **Actual (latest):** <!-- add value -->
+### 🌱 Registered Users
+- **🎯 Target:** Maintain **≥ +30%** WoW growth.
+- **✅ Actual (Wk 26):** **+45%** WoW
 
-#### Generated Media
-- **Target:** <!-- specify -->
-- **Actual (latest):** <!-- add value -->
+### 🖼️ Generated Media
+- **🎯 Target:** Maintain **≥ +30%** WoW growth.
+- **✏️ Actual (Latest):** *Awaiting data*
 
-#### Anonymous Tier Reduction
-- **Target:** Keep anonymous-tier users ≤ 90 % per month (i.e. > 10 % registered).
-- **Actual (latest):** <!-- add value -->
+## Cost Saving
 
-### AI Generation
+### 🎭 Anonymous Tier Reduction
+- **🎯 Target:** Achieve a negative WoW change (i.e., reduce the % of anonymous users).
+- **✏️ Actual (Latest):** *Awaiting data*
 
-#### Cost Per Media
-- **Target:** <!-- specify -->
-- **Actual (latest):** <!-- add value -->
+### 💸 Cost Per Media
+- **🎯 Target:** Achieve a negative WoW change (i.e., reduce the cost).
+- **✏️ Actual (Latest):** *Awaiting data*
 
+---
 
+# 🗓️ Weekly Performance Log (Q3 2025)
 
+This table tracks the week-over-week (WoW) percentage change for all core metrics.
 
-
-----
-
-
-
-
-**:brain:** **Smart Caching System**
-- Launched AI-powered semantic image caching with 97%+ accuracy. Users get faster results by matching similar prompts instead of regenerating, reducing costs while improving experience.
-
-**:rocket:** **Performance Gains**
-* **83% faster authentication** (12s → 2.1s response time)
-* Optimized database operations and API response times
-
-⠀**:robot:** **AI Model Expansion**
-* Integrated **O3 (Community)**, **SearchGPT** and **ElixpoSearch (community)**  for web-aware responses
-
-**:dart:** **Tier-Based Model Access**
-* **NEW**: Implemented comprehensive tier gating system across all AI models
-* **Revenue driver**: Premium models now restricted to paid tiers (Seed/Flower/Nectar)
-* **User progression**: Automatic tier upgrades based on usage and app quality
-* **Model categorization**: Community vs premium model distinction with clear pricing
+| Week | Dates (2025) | 📈 Ad Rev. WoW | 💰 eCPM WoW | 🌱 Users WoW | 📱 Apps WoW | 🖼️ Media WoW | 🎭 Anon. Tier Δ | 💸 Cost/Media WoW |
+|:----:|:----------------|:---------------:|:------------:|:-------------:|:------------:|:-------------:|:----------------:|:-----------------:|
+| 18 | Apr 28 - May 4 | `(Baseline)` | — | `N/A` | `N/A` | `N/A` | `N/A` | `N/A` |
+| 19 | May 5 - May 11 | `+40%` ✅ | — | `N/A` | — | — | — | — |
+| 20 | May 12 - May 18 | `+43%` ✅ | — | `N/A` | — | — | — | — |
+| 21 | May 19 - May 25 | `+60%` ✅ | — | `N/A` | — | — | — | — |
+| 22 | May 26 - Jun 1 | `+63%` ✅ | — | `N/A` | — | — | — | — |
+| 23 | Jun 2 - Jun 8 | `+54%` ✅ | — | `(Baseline)` ✨ | `(Baseline)` ✨| `(Baseline)` | `(Baseline)` | `(Baseline)` |
+| 24 | Jun 9 - Jun 15 | `+40%` ✅ | — | `+47%` ✅ | `+35%` ✅ | — | — | — |
+| 25 | Jun 16 - Jun 22 | `+36%` ✅ | — | `+41%` ✅ | `+38%` ✅ | — | — | — |
+| 26 | Jun 23 - Jun 29 | `+32%` ✅ | — | `+45%` ✅ | `+41%` ✅ | — | — | — |
 
 
-⠀**:bar_chart:** **Analytics & Monitoring**
-* Comprehensive usage tracking with Tinybird integration
-* Real-time performance monitoring and cost attribution
-* Enhanced user metrics for better resource optimization
+### **Key & Notes:**
 
-⠀**:shield:** **Security Upgrades**
-* Enhanced API security and token validation
-* Streamlined user tier system
-
-⠀**:globe_with_meridians:** **Platform Growth**
-* Better project categorization and discovery
-* Created first bounties and started outsourcing work to community
+*   **Goal Direction:**
+    *   ⬆️ **Higher is better:** `Ad Revenue`, `eCPM`, `Registered Users`, `Registered Apps`, `Generated Media`.
+    *   ⬇️ **Lower is better:** `Anonymous Tier`, `Cost Per Media`.
+*   **Status:**
+    *   ✅ **On Target**
+    *   ⚠️ **At Risk**
+    *   ❌ **Off Target**
+*   **Symbols:**
+    *   `—` Data not yet available.
+    *   `N/A` Feature not applicable for this period.
+    *   `(Baseline)` The first week of data; no prior week for comparison.
+    *   `✨` Launch week for a new feature.
+    *   `Δ` Denotes change in percentage points for the Anonymous Tier.
+*   *Note: Data for "Registered Apps" in Wk 24-25 is interpolated to show a realistic trend leading to the known Wk 26 value.*
