@@ -44,12 +44,7 @@ Digital-strategy leader with 20+ years in music, media & technology. Scaled seve
 ## Johnny – Advisory & Investment Proposal
 
 ### Offering
-- **Performance Marketing Consultation**: Expert guidance on marketing strategies and performance optimization
+- **Performance Marketing Consultation**: Expert guidance on marketing strategies, ad strategy and performance optimization
 - **Hiring Pipeline Support**: Assistance with recruitment processes and talent acquisition strategies  
 - **Case Study Development**: Creation of performance case studies with detailed feedback and analysis
-- **Financial Support**: Small amount of cash investment for immediate operational needs
-
-### Requested Partnership Terms
-- Seeking percentage-based offering in exchange for contribution value (monetary and strategic)
-- Open to discussion on appropriate percentage based on assessed contribution impact
-- Flexible arrangement to match the value provided to Pollinations.AI growth
+- **Financial Support**: Cash investment for immediate operational needs
