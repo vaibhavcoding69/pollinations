@@ -1,372 +1,815 @@
 ---
-title: pollinations.ai — Unity for AI
-class: text-center
+layout: two-cols-header
+---
+
+# pollinations.ai - Docs
+
+::left::
+
+- [📝 One-Pager](/16)
+- [🎤 Pitch Deck](/18)
+
+<br>
+
+- [📑 Executive Summary](/2)
+- [🔭 Vision & Mission](/3)
+- [💰 Business Model](/4)
+- [💹 Financial Model](/5)
+- [🛣️ Roadmap](/6)
+- [👥 Team](/7)
+
+::right::
+
+- [📈 Market Opportunity](/8)
+- [🌍 Ecosystem Analysis](/9)
+- [🤝 Add Partners](/10)
+- [⚠️ Risk Register](/11)
+- [🥊 Competitive Landscape](/12)
+- [🚀 KPI & Traction Metrics](/13)
+- [🏗️ Tech Architecture](/14)
+
+<br>
+
+- [🔍 Due Diligence](/15)
+
+
+---
+src: ./docs/01-executive-summary.md
+---
+
+---
+src: ./docs/02-vision-mission.md
+---
+
+---
+src: ./docs/03-business-model.md
+---
+
+---
+src: ./docs/05-financial-model.md
+---
+
+---
+src: ./docs/04-roadmap.md
+---
+
+---
+src: ./docs/10-team.md
+---
+
+---
+src: ./docs/03-market-opportunity.md
+---
+
+---
+src: ./docs/03-blooming-ecosystem.md
+---
+
+---
+src: ./docs/14-ad-partners.md
+---
+
+---
+src: ./docs/11-risk-register.md
+---
+
+---
+src: ./docs/09-competitive-landscape.md
+---
+
+---
+src: ./docs/12-traction-metrics.md
+---
+
+---
+src: ./docs/07-tech-architecture.md
+---
+
+---
+src: ./docs/16-due-diligence.md
+---
+
+---
+
+<img src="/media/pollinations.ai - One Pager (May 2025).png" alt="Pollinations.ai One Pager" class="w-full rounded-lg shadow-lg">
+
+---
+
+# **Pitch Deck**
+
+---
+class: text-center flex flex-col justify-center items-center h-full
 ---
 
 # ![Pollinations.ai Logo](/media/pollinations-ai-logo.png)
 
-## AI Empowers Everyone to Create
-
-**The lightning‑fast path from idea ➜ monetized generative‑AI product.**
-
-<!--
-SLIDE GUIDANCE:
-
-**Concise Talking Points Script:**
-
-*   **(Thomas/Elliot):** "We are **Pollinations.AI**."
-*   **(Thomas/Elliot):** "We believe **AI empowers everyone to create**."
-*   **(Thomas/Elliot):** "Our platform: the **lightning-fast path** from idea to **monetized generative AI product**."
--->
-
----
-layout: two-cols-header
----
-
-# <span class="bg-blue-600 text-white p-2 rounded">**🚀 Traction**</span>
-
-::left::
-
-<img src="/media/traction_infoslide3.png" alt="Traction" class="w-mx mx-auto" />
-
-
-::right::
-
-<img src="/media/piechart_countries_genz.png" alt="Geographic distribution" class="w-mx mx-auto" />
-
-<!--
-*   **Thomas:** "We're seeing **explosive growth**."
-*   **Thomas:** "Pollinations powers **>100 MILLION** AI media generations **PER MONTH**."
-*   **Elliot:** "Growth is 35% Month-over-Month on key metrics like API requests."
-*   **Elliot:** "Over 300 integrations are live – Vibe coders are building more than 2 new apps DAILY."
-*   **Thomas:** "Truly **global reach**: Strong adoption in **China, US, India**."
-*   **Elliot:** "This shows massive community buy-in & product-market fit."
-
-SLIDE GUIDANCE:
-<img src="/media/media_requests_per_day_genz.png" alt="Media Requests Growth" class="w-2/4 mx-auto mb-4" />
-- Key Markets: 30% CN, 13% US, 13% EU, 6% IN
-- China presence is significant - emphasize our global reach as differentiator
--->
-
----
-
-# <span class="bg-red-600 text-white p-2 rounded">**😖 Problem**</span>
-
-<img src="/media/paintpointsgenz.png" alt="Pain Points Visual" class="w-5/7 mx-auto" />
-
-
-<div class="text-center" style="font-size: 24px;">
-The current ecosystem forces <b>painful trade-offs</b>.
+## Spark Creation, Unlock Ad Revenue
+#
+<div class="bg-yellow-300 hover:bg-yellow-400 text-black font-bold py-2 px-4 rounded-2xl shadow-lg inline-block transition-colors duration-200">
+  <a href="https://pollinations.ai" class="no-underline">🐝 Start building with pollinations.ai</a>
 </div>
 
 <!--
-
-*   **Elliot:** "**Creators & Developers**: Building with AI = **complex, expensive**."
-*   **Elliot:** "Face infra headaches, auth issues, and crucially: **NO easy way to MONETIZE** viral apps."
-*   **Thomas:** "**End Users**: Hit **paywalls**, have **privacy concerns**, want **more customization**."
-*   **Thomas:** "**Ad Providers/Brands**: Struggle to reach the **youth/Gen Z** demographic in AI-native apps."
-*   **Elliot:** "**Core Issue**: Friction & silos prevent an **open, creative, *and* monetizable** AI ecosystem."
-*   **(Optional - Thomas):** "Example: Kid builds viral AI Discord bot -> makes **$0** today. We fix that."
-
-SLIDE GUIDANCE:
-
-### **Creator (Affiliate)**
-* Complex AI infrastructure
-* Authentication headaches
-* No built‑in monetisation
-
-### **End Users (Consumer)**
-* Paywalls everywhere
-* Privacy concerns
-* Limited customisation
-
-### **Ad Providers (Brand)**
-* Missing youth demographic
-* No AI-native targeting
-
-- Frame problem as a dual pain point affecting both developers AND users
-- Don't forget the AD providers. They are not reaching the indie creator apps. The money comes from there so they may be more important than the others in terms of priority/ or same importance
-- The problem statement is clear - but could potentially add 1-2 concrete examples of developer/user friction
-- Consider mentioning competition implicitly (without naming) by referencing their limitations (check context/parallels-unity-for-ai-and-others.md for more detail)
+* Hi everyone, I'm Thomas from **Pollinations.ai**
+* AI allows **Everyone to be a coder**. Interacting with ChatGPT is **coding in natural language**.
+* A prompt is the **source code** for AI applications.
+* "We provide the **AI platform** for our vibrant community to easily build **gen AI apps**."
+* "We partner with specialized **Ad Tech** companies to **monetize** the unique, untapped **ad inventory** provided by these apps."
+* "Today I'll show you our **phased path** to **shared success**"
 -->
 
 ---
 layout: two-cols-header
 ---
 
-# <span class="bg-green-600 text-white p-2 rounded">✨ The Pollinations Fix: **AI App Factory**</span>
+# <span class="bg-red-600 text-white p-2 rounded">**🔗 Problem : Fragmented, Unfunded AI**</span>
 
 ::left::
 
-## Unity for AI
+<img src="/media/problem_friction.png" alt="Problem: Friction" class="w-1/4 rounded-lg shadow-lg" />
 
-*   **AI setup:** Launch instantly via assistant.
-*   **You Focus on Frontend:** Build the UI/UX.
-*   **Plug & Play AI:** Simple URLs for media features.
-*   **Backend Handled:** We run infra, scale, & ads.
+#
 
-*The easiest path to a live, monetized AI app.*
+# **Indie/Vibe Coder** 
+#
+### ⚙️ **Complex AI Access & High Costs**
+#
+### 💰 **Monetization Blindspot for AI Content**
+
+<br>
 
 ::right::
 
-<img src="/media/pollinations_fix_genz.png" alt="Pollinations Fix Diagram" class="w-mx mx-auto mt-4" />
+<img src="/media/problem_reach.png" alt="Problem: Reach" class="w-1/4 rounded-lg shadow-lg" />
+
+#
+
+# **Advertisers & Ad Tech**
+#
+### 🍀 **Fragmented & Unique AI Inventory**
+#
+### 📊 **Generic Ads Don't Fit AI Context**
+
+<br>
 
 <!--
-
-*   **Thomas:** "Our solution: The **Pollinations AI App Factory**."
-*   **Thomas:** "Think **Unity for AI**. We make it radically simple."
-*   **Elliot:** "**AI Setup**: Integrate instantly via assistant. Auto-configures infra."
-*   **Elliot:** "**You Focus on Frontend**: Build the cool experience."
-*   **Thomas:** "**Plug & Play AI**: Just add simple **URL calls** for text, image, audio features."
-*   **Thomas:** "**Backend Handled**: We run the **infra, scale it, handle ads & rev share**."
-*   **Elliot:** "It's the **easiest, fastest path** to a live, **monetized AI app**."
-
-SLIDE GUIDANCE:
-- Synthesized from Alt 2 & 3.
-- Kept "AI App Factory" (Alt 3).
-- Used "AI Sets Up" (Alt 2/3) + "Launch instantly" (Alt 3 speed).
-- Used "You Focus on Frontend" (Alt 2 developer role).
-- Improved "Plug-in AI" to "Plug & Play AI" + "Simple URLs".
-- Used "Backend Handled" (Alt 2 clarity) + "infra, scale & ads" (Alt 2/3 specifics).
-- Kept strong tagline (Alt 3).
-
-
-- Developers use their AI coding assistant (integrated with our tools) to bootstrap projects from various starter kits (React, Unity, etc.), automating repo creation, config, and deployment.
-- This frees the developer to concentrate *only* on building the user-facing application.
-- Adding generative AI (image, text, audio) requires just simple HTTPS calls to our Edge APIs.
-- Pollinations manages the entire backend: scalable hosting (e.g., GitHub Pages), CI/CD, model serving, security, auth, usage metering, and the monetization layer (serving ads, managing rev-share payouts). Zero server ops for the dev.
+* "The GenAI boom creates distinct problems:"
+* **"For Indie Coders (left):**
+  * "**Complex AI access**, high **costs**, limited model variety.**Stifles creation**."
+  * "If they build, a **monetization blindspot**. AI-specific tools **lacking**."
+* **"For Advertisers & Ad Tech (right):**
+  * "An **untapped AI frontier**, but **fragmented AI inventory** is hard to access."
+  * "And **generic ads don't fit AI context**, leading to **poor engagement**."
+* "**Pollinations solves** the **disconnect** between **difficult creation & access** vs. **ineffective monetization & reach**"
 -->
+
 ---
 layout: two-cols-header
 ---
 
-# <span class="bg-purple-600 text-white p-2 rounded">**🌍 Market & Business**</span>
+# <span class="bg-green-600 text-white p-2 rounded">**✨ AI Creation Meets Monetization**</span>
+
+<br> 
 
 ::left::
 
-<img src="/media/youth-ad-market.png" alt="Youth Ad Market" class="w-3/4 mx-auto my-4" />
+# 👩‍💻 Indie/Vibe Coder
+### **→ Build & Monetize**
+#
+<div class="flex justify-left space-x-4 mb-2">
+  <img src="/media/logo_koboldai.png" alt="KoboldAI Logo" class="h-10">
+  <img src="/media/logo_lobe.png" alt="Lobe Logo" class="h-10">
+  <img src="/media/logo_quen.png" alt="Quen Logo" class="h-10">
+</div>
+
+<br>
+<br>
+
+# 🏢 Advertisers
+### **→ Reach AI-Natives**
+
+<br>
+
+<div class="flex justify-left space-x-4 mb-2">
+  <img src="/media/ad-partner-garlic.png" alt="Garlic Partner" class="h-8">
+  <img src="/media/ad-partner-nexad.png" alt="Nexad Partner" class="h-8">
+</div>
+  <img src="/media/logo_google_ad_sense.png" alt="Ad-sense Partner" class="h-12">
+
 
 ::right::
 
-## Two-Sided Market 🔄
+<div class="bg-blue-100 p-4 rounded-lg shadow-lg mb-2 text-center">
+<div class="font-bold text-blue-600 text-xl">Developers Create Apps with AI Media</div>
+</div>
+<div class="text-center font-bold text-xl">↓</div>
 
-- **Affiliates (Creators)**: developers and hobbyists embed gen-Al media
-- **Advertisers (Brands)**: companies supply ads
-<br/>
-<br/>
-## How do we make money? 🔄
-> **Unity for AI**: 50% revenue share to Creators, proven model
+<div class="bg-green-100 p-4 rounded-lg shadow-lg mb-2 text-center">
+<div class="font-bold text-green-600 text-xl">Apps Attract & Engage Users</div>
+</div>
+<div class="text-center font-bold text-xl">↓</div>
 
+<div class="bg-purple-100 p-4 rounded-lg shadow-lg mb-2 text-center">
+<div class="font-bold text-purple-600 text-xl">pollinations.ai Integrates Ad Solutions</div>
+</div>
+<div class="text-center font-bold text-xl">↓</div>
+
+<div class="bg-amber-100 p-4 rounded-lg shadow-lg mb-2 text-center">
+<div class="font-bold text-amber-600 text-xl">Revenue Generated & Shared</div>
+</div>
 
 <!--
+**Solution - Connecting Creation with Monetization**
 
-*   **Elliot:** "We operate in a **massive, rapidly growing market**."
-*   **Elliot:** "The **Generative AI creator economy** is already a **$10 Billion+ TAM** and doubling YoY." *(Referencing graphic/data point)*
-*   **Thomas:** "Our model targets **two key sides**:
-    *   **Affiliates (Creators):** Developers/hobbyists embedding our **free AI media APIs**.
-    *   **Advertisers (Brands):** Companies reaching the **valuable youth demographic** through these AI apps."
-*   **Elliot:** "The **Business Model** is simple and proven, like **Unity's ad model**:"
-*   **Elliot:** "**50% revenue share** back to the creators. We provide the platform, they build, we *all* win."
-*   **Thomas:** "Initial revenue streams: **Contextual ads** and **Affiliate referrals**. Pilots are live."
-*   
-SLIDE GUIDANCE:
+**Our Core Value Proposition:**
+* We take creators from **idea to income** with **zero upfront cost** - this is crucial
 
-* Users get free AI experiences, brands reach youth demographi
+**For Indie/Vibe Coders:**
+* We make **AI integration effortless** while providing a **clear path to profit**
+* Their apps can **self-fund** their own compute costs through our ads!
+* Un 2026, we'll launch **Nectar** with **50/50 revenue sharing** for top performers
 
-💰 Generative AI creator economy **$10 B** TAM 📈 Generative AI market doubling YoY (Gartner 2025)
+**For Advertisers:**
+* We're opening access to these previously **untapped AI-native audiences** through **context-aware dynamic ad placements**
+* This drives much **higher engagement** than traditional ad formats
 
-## Revenue Streams 💰
-
-1. Contextual ads (CPM \$1–2) - *PoC Live*
-2. 50% app rev‑share (Roblox style) - *Pilot Live*
-
-In Pollinations.AI’s ecosystem, the core two sides are:
-* **Affiliates (Creators):** developers and hobbyists who embed generative-AI media (with referral links) into their apps ~[Tipalti](https://tipalti.com/en-uk/affiliate-hub/affiliate-network/?utm_source=chatgpt.com)~
-* **Advertisers (Brands):** companies supplying those referral links and paying for conversions 
-
-**End-user:** Consumer
-**Creator:** Affiliate
-**Brand:** Advertiser
-**Us:** Platform
-
-- Exploring extra revenue stream (TBC from Q2 2026)
-   1. Micro‑purchases (stickers, tokens)
-   2. Premium tiers (SLA, bigger models)
-   3. Data monetisation (e.g. user data for training)
-- Untapped / Developping market
-- Potential positioning options from parallels doc: "GIPHY-meets-AdSense for AI", "Unsplash for AI—monetised out-of-the-box"
-- Unity, AppLovin, and other platforms demonstrate lightweight SDKs with embedded ads are proven high-margin models
-- Consider adding slide on how we're better/differently positioned than Unity/AppLovin for AI era (AI-native, better targeting)
+**In short:** We build the **infrastructure**, partner with **ad experts**, and **everyone shares** in the success
+## End
 -->
 
 ---
 layout: two-cols
 ---
 
-# <span class="bg-yellow-600 text-white p-2 rounded">📈 **Circular Economy**</span>
+# 🚀 **Developer Adoption, It's Real.**
 
-* **Market Trend:** 📊 Gen-AI market doubling YoY
-* **Tech:** 🧠 AI-powered ad targeting
-* **Trust Moat:** 📖 Open source & Privacy-first
-* **Community:** 🔄 More apps → Better data → Better platform → More apps
+<img src="/media/git-star-history.png" alt="GitHub Star History" class="w-6/7 rounded-lg shadow-lg">
 
 ::right::
 
-<img src="/media/fly-wheel-genz.png" alt="Fly Wheel" class="w-2/3 mx-auto my-4" />
+<div class="mx-2">
+  <video class="w-1/1 rounded-lg shadow-lg" autoplay loop muted controls onloadedmetadata="this.currentTime = Math.random() * this.duration; this.playbackRate = 2.0;">
+    <source src="/media/what-do-we-do_slideshow-3.mp4" type="video/mp4">
+  </video>
 
-<!--
-*   **Thomas:** "Our model creates a **powerful circular economy**, a flywheel for growth." *(Gesture to diagram)*
-*   **Thomas:** "**Market Trend Driving Us**: The **GenAI market is exploding**, doubling year-over-year."
-*   **Elliot:** "Better data from usage allows **smarter ad targeting**, increasing revenue for everyone."
-*   **Elliot:** "Being **Open Source and Privacy-First** builds deep trust with developers and users."
-*   **Thomas:** "More apps built on Pollinations -> attracts more users -> generates better data -> improves the platform -> encourages **even more apps**. It's self-reinforcing."
-*   **Elliot:** "This isn't just theory – **Unity proved** this ad/rev-share model generates billions."
+  <div class="mb-4"></div>
 
-<img src="/media/circular_economy_genz.png" alt="Fly Wheel" class="w-2/3 mx-auto my-4" />
-
-SLIDE GUIDANCE:
-- Market trend:  4× More citizen Creators than pros. 
-- Unity generates $1.2B (66%) from ads via lightweight SDK with rev-share - directly parallel to our model
-- potentially the best slide to add competition
-- one of our principle moats is that devs are embedding us in their open source repositories, making youtube videos, and spreading the word organically. discord bots in many guilds...
-- Consider adding from parallels doc: "Anyone who can type a prompt is a potential Pollinations integrator" (maybe previous slide)
-- Consider adding IDC forecast: 750M new cloud-native apps by 2026 - huge TAM expansion (previous slide?)
-- Ad unit options to consider highlighting: native widgets, brand overlays, performance link ads
--->
-
+  <video class="w-1/1 rounded-lg shadow-lg" autoplay loop muted controls onloadedmetadata="this.currentTime = Math.random() * this.duration; this.playbackRate = 2.0;">
+    <source src="/media/what-do-we-do_slideshow-4.mp4" type="video/mp4">
+  </video>
+</div>
 
 ---
 
-# <span class="bg-indigo-600 text-white p-2 rounded">**🛣️ Roadmap: From Activation to Dominance**</span>
+# **🎮 Creator Story: Pokémon Image Generation**
 
-## **1️⃣ Activate (Next 12 Mo)**
-Launch Ad Rev Share, Activate Dev Community, Secure Seed Funding.
-
-**Target**: $1M ARR, 15M MAU
-
-## **2️⃣ Scale (12-36 Mo)**
-SDK v2, AI Ad Optimization, Global Community.
-
-**Target**: Sustainable Growth
-## **3️⃣ Vision**
-Become the ubiquitous, **assistant-centric** engine for AI creation and distribution.
+<div class="flex">
+  <div class="w-4/10 pt-4 pr-4 flex flex-col justify-start">
+    <div class="text-3xl mb-8">
+      <p>Watch how <strong>easy</strong> it is<br>
+      <br>
+      To <strong>build</strong> engaging<br>
+      <br>
+      AI applications <br>
+      <br>
+      <strong>in seconds</strong> ⚡️</p>
+    </div>
+    <div class="bg-gradient-to-r from-purple-500 to-purple-400 text-white font-bold py-3 px-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 inline-block transform hover:scale-105" style="max-width: 70%;">
+      <p class="m-0 text-lg">✨ Turn your AI dreams into reality in minutes with <span class="text-yellow-300">pollinations.ai</span> 🚀</p>
+    </div>
+  </div>
+  
+  <div class="w-6/10 ml-auto">
+    <video class="w-full rounded-lg shadow-lg" autoplay loop muted controls onloadedmetadata="this.playbackRate = 2.0;">
+      <source src="/media/pokemon-image-gen-2x-compressed.mp4" type="video/mp4">
+    </video>
+  </div>
+</div>
 
 <!--
-
-*   **Thomas:** "Our roadmap focuses on **two clear phases** to capture this market."
-*   **Thomas:** "**Phase 1: Activate (Next 12 Months)**"
-    *   "Launch **Ad Revenue Share** platform wide."
-    *   "**Activate developer community** further with grants & tools."
-    *   "Secure **Seed Funding ($2.5-3M)**."
-    *   "Target: **$1M ARR *annual recurring revenue*, 15M MAU**."
-*   **Elliot:** "**Phase 2: Scale (12-36 Months)**"
-    *   "Release **SDK v2** for deeper integrations."
-    *   "Implement **AI-driven Ad Optimization**."
-    *   "Build a truly **global community** and support structure."
-    *   "Target: **Sustainable growth** & diversified revenue."
-*   **Thomas:** "**Phase 3: Vision**"
-    *   "Become the **ubiquitous engine** for AI creation."
-    *   "Focus on **assistant-centric integration** – AI building AI."
-    *   "The definitive **'Unity for AI Experiences'**."
-
-Baseline – End of Q2 2025 (June 2025)
-• Users & Engagement: 3M MAU · 80M monthly generations
-• Monetization: ≈ $0 ARR (Basic text-ad append for unregistered apps only - Live)
-• Platform: Authentication live (pollinations-init issuing tokens) · Core Edge Services live (Image, Text, Audio Gen APIs + Open Source React SDK)
+## Creator Story
+* This is a real example of how creators use our platform
+* They can quickly build engaging AI applications with minimal effort
+* Our infrastructure handles all the complexity, letting them focus on creativity
+* This creates unique ad inventory opportunities in these engaging experiences
+-->
 
 
-SLIDE GUIDANCE:
-## **1️⃣ Activate (Next 12 Mo)**
-**Prove core loop:** Launch Ad Rev Share, Activate Dev Community, Secure Seed Funding ($2.5-3M).
-*Target: $1.2M+ ARR, 5.5M MAU*
-
-## **2️⃣ Scale (12-36 Mo)**
-**Expand ecosystem:** SDK v2, AI Ad Optimization, Global Community.
-*Target: Sustainable Growth, Diversified Revenue (Premium Tiers, Data Monetisation, In-AppMicro Payments)*
-
-## **3️⃣ Dominate (Vision)**
-Become the ubiquitous, **interface-free engine** for AI creation and distribution.
-*The "Unity for AI Experiences"*
+<!--
+## Product Showcase Apps Cohort
+*   Community builds diverse apps on our infra.
+*   Examples: (For each video, briefly state)
+    *   "[App Type 1]: [Key user], [Pollinations tech used]."
+    *   "[App Type 2]: [Key user], [Pollinations tech used]."
+    *   (Shows platform power & creativity).
+## End
 -->
 
 ---
 
-# <span class="bg-pink-600 text-white p-2 rounded">👥 **Team**</span>
+# **☁️ Our Cloud Architecture**
 
-|         |                      |                                             |
-| ------- | -------------------- | ------------------------------------------- |
-| **CEO** | **Thomas Haferlach** | Sets vision & Strategy, Drives breakthrough |
-| **COO** | **Elliot Fouchy**    | Executes strategy & Finance; Leads delivery |
+<div class="bg-pink-100 p-2 mb-5 rounded-lg shadow-lg inline-block">
+  <h3 class="m-0"><strong>Scalable Infrastructure</strong> powering our ecosystem 🔌</h3>
+</div>
 
-## 
-
-### **+ 🧠 Engineering & Data**  
-**Senior AI-Ops & Infra Team** : GPU fleet optimization, Scaling Backend
-
-### **+ 🌐 Marketing & Community**
-**Growth & Developer Relations** : User acquisition, Brand partnerships, Community
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '14px', 'nodeSpacing': 10, 'rankSpacing': 25}}}%%
+flowchart TD
+    subgraph Clients[<b style='font-size:18px'>Clients</b>]
+    Q["<b>Messaging Platforms</b>"] 
+    N["<b>30+ Apps</b>"] 
+    A["<b>Website</b>"] 
+    R["<b>AI Agents</b>"] 
+    AI["<b>AI Assistants</b>"]
+    end
+    
+    subgraph APIs[<b style='font-size:18px'>APIs</b>]
+    L1["<b>image.api</b>"]
+    L2["<b>text.api</b>"]
+    MCP["<b>MCP Server</b>"]
+    end
+    
+    subgraph Services[<b style='font-size:18px'>Services</b>]
+    B["<b>Image Generation</b>"]
+    F["<b>Prompt Enhancement</b>"]
+    D["<b>FLUX Models</b>"]
+    P["<b>News/Search</b>"]
+    end
+    
+    subgraph Providers[<b style='font-size:18px'>Providers</b>]
+    SC["<b>Scaleway</b>"]
+    DS["<b>Deepseek</b>"]
+    G["<b>Azure</b>"]
+    CF["<b>Cloudflare AI</b>"]
+    end
+    
+    subgraph Models[<b style='font-size:18px'>Models</b>]
+    QW["<b>Qwen</b>"] 
+    LL["<b>Llama</b>"]
+    OP["<b>OpenAI</b>"] 
+    CL["<b>Claude</b>"]
+    MI["<b>Mistral</b>"] 
+    CFL["<b>Llama Models</b>"]
+    end
+    
+    Q & N & A & R --> L1
+    N & A --> L2
+    AI --> MCP --> L1
+    L1 --> B --> F --> D
+    L2 --> P & SC & DS & G & CF
+    SC --> QW & LL
+    G --> OP & CL
+    CF --> MI & CFL
+    
+    %% Styling
+    classDef default fill:#FCE7F3,stroke:#DB2777,stroke-width:1px,color:#831843,rx:10,ry:10
+    classDef container fill:#ECFDF5,stroke:#059669,stroke-width:2px,color:#065F46,rx:15,ry:15
+    
+    class Q,N,A,R,AI,L1,L2,MCP,B,F,D,P,SC,DS,G,CF,QW,LL,OP,CL,MI,CFL default
+    class Clients,APIs,Services,Providers,Models container
+```
 
 <!--
+## Our Architecture
+* This is the technical foundation that powers everything you've seen
+* Our architecture is designed for scale, reliability, and flexibility
+* We connect diverse client applications to the best AI models through our services
+* This modular design allows us to integrate new models and services quickly
+-->
+---
+layout: two-cols
+---
 
-*   **Elliot:** "Executing this vision requires the right team."
-*   **Elliot:** "**Founding Team:**
-    *   **Thomas (CEO):** Drives **vision, strategy, breakthrough tech**. 
-    *   **Elliot (COO):** Executes **strategy, finance, delivery**. "
-*   **Thomas:** "Our **decade-long collaboration** provides strong synergy, backed by AI & scaling experience."
-*   **Thomas:** "**Planned Key Hires:**
-    *   Senior **AI-Ops & Infra** team for GPU optimization and scaling.
-    *   **Growth & Developer Relations** lead for user acquisition, partnerships, community."
+# 💬 **Pixpal.Chat** (web app)
 
+<br>
+<br>
 
-SLIDE GUIDANCE:
-- Collaboration: The founders share a long history of collaboration, having worked together on various technology and creative projects for more than a decade, building strong synergy and shared vision.
+<div class="relative">
+  <div v-click-hide="1" class="absolute top-0 left-0">
+    <div class="text-4xl font-bold">
+      <span class="italic">#1 on Bing</span>
+    </div>
+    <div class="text-3xl">
+      and various assistants for
+    </div>
+    <div class="text-3xl font-bold">
+      AI image generation 🖼️
+    </div>
+  </div>
+
+  <div v-click="1" class="absolute top-0 left-0">
+    <div class="text-4xl font-bold">
+      <span class="italic">Contextual & Personalized</span>
+    </div>
+    <div class="text-3xl">
+      Ad Integration
+    </div>
+    <div class="text-3xl font-bold">
+      🎯
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 180px" class="flex gap-4 items-center">
+  <img src="/media/logo_mistral.png" alt="Mistral AI Logo" class="h-15">
+  <img src="/media/logo_llama.png" alt="Meta AI Logo" class="h-20">
+</div>
+
+::right::
+
+<div class="flex justify-center items-center relative h-full">
+  <img v-click-hide="1" src="/media/pixpal-1.png" class="w-3/3 rounded-lg shadow-lg absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" alt="Pixpal AI chat with images">
+  <img v-click="1" src="/media/pixpal-2.png" class="w-3/3 rounded-lg shadow-lg absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" alt="Pixpal AI chat with contextual ad">
+</div>
+
+<br>
+<br>
+
+<!--
+## Product Showcase - Ad Integration
+* Pixpal, a community app using our infra, is **#1 on Bing** for 'AI Chat with Images'
+* Here's our AI monetization: User asks about Greece in Pixpal
+* Pollinations' AI **analyzes context**. Our system, with ad partners like **Garlic/Nex.ad**, delivers a **hyper-contextual ad**
+* Note the **dynamically AI-generated image** (e.g., Santorini) and **targeted partner offer** (e.g., TalkPal)
+* This approach is **smart**, **non-intrusive**, and **incredibly effective**. This is how creators will monetize
+## End
+-->
+
+---
+layout: two-cols
+---
+
+# **🎮 Roblox Case Study**
+
+<div class="bg-pink-400 text-white p-2 rounded-lg inline-block mb-4">
+  <h2 class="m-0"><strong>Revenue Share Success</strong></h2>
+</div>
+
+<br>
+<br>
+
+<div class="text-4xl font-bold">
+  <span class="italic">#1 on Roblox</span>
+</div>
+<div class="text-3xl">
+  🏆 AI Game Category
+</div>
+
+<br>
+
+<div class="text-4xl font-bold">
+  <span class="italic">2M+</span>
+</div>
+<div class="text-3xl">
+  👥 Monthly Active Users
+</div>
+
+<br>
+<br>
+
+<div class="flex gap-4 items-center">
+  <img src="/media/roblox-logo.png" alt="Roblox Logo" class="w-20">
+  <img src="/media/logo_llama.png" alt="Roblox Logo" class="h-20">
+</div>
+
+::right::
+
+<div class="flex justify-center items-center h-full">
+  <video class="w-4/4 rounded-lg shadow-lg" autoplay loop muted>
+    <source src="/media/roblox_video.mov" type="video/mp4">
+  </video>
+</div>
+
+<!--
+## Roblox Case Study - Real Revenue Sharing in Action
+* Let me share a powerful **real-world example** of our model working today
+* This is "AI Character RP" - currently the **#1 AI game** on Roblox
+* It's reached an impressive **2M monthly active users** - real validation of what our infrastructure enables
+* The monetization happens through the **Roblox platform** itself
+* We've established a **custom revenue-sharing arrangement** with the developer
+* This is essentially **piloting our Nectar model** that we'll roll out more broadly
+* It proves our concept works in the **real world**, with **real users** and **real revenue**
+## End
 -->
 
 ---
 layout: two-cols-header
 ---
 
-# <span class="bg-teal-600 text-white p-2 rounded">**💰 Raising**</span>
+# <span class="bg-blue-600 text-white p-2 rounded">**🚀 Traction: Flywheel Already in Motion**</span>
 
-::left:: 
+::left::
 
-## **🌱 300K** (Q3 2025)
-|  |  |
-|----------|---------|
-| AIOps / Data Scientist | 50% |
-| Cloud Computing | 33% |
-| Operation | 12% |
-| Marketing | 5% |
+## 👥 **3M+** Mo Active End-Users
+## 🎨 **100M+** Media Gen/Month
+#
+<div class="bg-gray-200 text-black p-2 rounded-lg inline-block">
+  <h3 class="m-0">📈 <strong>30%</strong> Month-o-Month Growth</h3>
+</div>
 
-## Reach out! hello@pollinations.ai
+<br>
+<br>
+
+## 🚀 **300+** Apps Live
+## ⚡ **2+** Built Daily
+#
+
+<div class="bg-gray-200 text-black p-2 rounded-lg inline-block">
+  <h3 class="m-0">💬 <strong>13K+</strong> Discord Community</h3>
+</div>
+
+<br>
+<br>
 
 ::right::
 
-## **🚀 €2.5 – 3 M seed** (Q2 2026)
-* Tech & Product
-* Growth Engineering
-* Community Focus
-* Platform Scale
+<div class="flex justify-center items-center">
+  <img src="/media/traction-media-generated-6mo.png" alt="Media Generated Growth" class="w-8/8 rounded-lg shadow-lg">
+</div>
+
+#
+
+<div class="text-center">📊 Media Generated per Day</div>
 
 <!--
+## Traction - Our Flywheel is Already Spinning
+* Our flywheel is not just theoretical - it's **already in full motion**
+* We've reached **3M+ monthly active users** generating over **100M pieces of media** per month
+* We're seeing consistent **organic growth of 30%** month-over-month
+* Our community has built over **300 apps**, with **2+ new ones** launching daily
+* **Text generations** have actually surpassed images - now at **1.3M per day**
+* Our ad pilot program has already delivered **14M impressions** - and we're learning fast
+* This traction **validates our model** and shows we're solving a **real need** in the market
+## End
+-->
 
-*   **Elliot:** "To kickstart our Activate phase, we're securing **€300K now (Q3 2025)**."
-*   **Elliot:** "**Immediate Use:**
-    *   **50% AIOps/Data Scientist:** To optimize models and ad targeting in API requests.
-    *   **12% Operations:** Streamlining delivery & finance.
-    *   **5% Marketing:** Early community & brand building."
-*   **Thomas:** "Following that, we'll raise a **€2.5 - €3 Million Seed round in Q2 2026**."
-*   **Thomas:** "**The Seed Round Powers Our Scale Phase:**
-    *   Build SDK v2, enhance AdTech.
-    *   Drive user acquisition & monetization.
-    *   Expand developer grants & ecosystem.
-    *   Ensure robust infrastructure for mass adoption."
-*   **Elliot:** "This funding strategy ensures we can **hit our milestones** and build the leading open platform for generative AI."
+---
+layout: two-cols-header
+---
 
-*   
-SLIDE GUIDANCE:
-* Tech & Product: SDK v2, AI AdTech, Premium Offerings
-* Growth Engine: Scale Revenue & Global User Base
-* Community Focus: Empower "Vibe Coders," Expand Ecosystem
-* Platform Scale: Robust Infrastructure for Mass Adoption
+# <span class="bg-orange-600 text-white p-2 rounded">**🌍 $20 B of Ads, One Drop‑In Line of Code**</span>
+
+::left::
+
+<br>
+
+## **€218 B** TAM 🌐
+### Mobile + Web Ad Spend **Outside** Walled Gardens (2025)
+
+<br>
+
+## **€20 B** SAM 📣
+### Ad spend on Indie Apps
+
+<br> 
+
+<div class="bg-gray-100 p-4 rounded-lg inline-block">
+
+# **€768 M** SOM 💻
+### **3.8 %** of SAM → **massive runway**
+</div>
+
+
+
+::right::
+
+<div class="flex justify-center items-center">
+  <img src="/media/tam-sam-som.png" alt="TAM SAM SOM Visualization" class="w-6/7 rounded-lg shadow-lg">
+</div>
+
+
+
+<!--
+### Market
+*   TAM: €218B (Mobile/Web ads outside giants).
+*   SAM: €20B (Indie App Ad Spend reachable via SDKs).
+*   SOM: €768M (Our potential from AI-native apps).
+*   Our infra + ad partners tap this growing market.
+*   **We're Unity Ads for Gen‑AI micro‑apps** - Unity scaled ads from 0 → $1.6 B in revenue with similar developer base.
+  
+#### In Short
+- We’re targeting a €218B ad market — mobile and web ads outside the big platforms.
+- Our real focus is a €20B slice: indie apps that can use SDKs like ours.
+- From that, we aim to capture €768M through Gen-AI micro-apps.
+- Think Unity Ads — they scaled from 0 to $1.6B. We’re doing the same, but for AI.
+
+#### Longer
+- The total market we’re going after is huge — €218 billion in mobile and web ad spend, outside of the major platforms like Meta and TikTok.
+- Our serviceable market is about €20 billion — that’s the indie apps where Unity-style SDKs can realistically plug in and monetize.
+- From that, we’ve scoped out a clear beachhead: €768 million — that’s our share of AI-native apps, where we believe we can have the strongest impact.
+- We are confident because we’re doing for Gen-AI micro-apps what Unity Ads did for mobile games — and they went from zero to over $1.6 billion in ad revenue, serving a very similar type of long-tail developer base.
+- We’ve got the infrastructure and getting ready with ad-tech partners in place to tap this fast-growing space.
+
+## End
+-->
+
+---
+layout: two-cols
+---
+
+# <span class="bg-purple-600 text-white p-2 rounded">**💰 From Prompt to Profit**</span>
+
+<br>
+<br>
+<br>
+
+<div class="bg-purple-100 p-4 rounded-lg shadow-lg mb-4 relative" style="min-height: 240px;">
+  <div v-click-hide="1" class="absolute top-0 left-0 right-0 bottom-0 p-4">
+    <div class="font-bold text-3xl">💼 Example: Mirexa app</div>
+    <div class="text-2xl">(Text/Image Generator)</div>
+    <div class="grid grid-cols-2 gap-4 mt-4">
+      <div>
+        <div class="font-semibold text-xl">720K</div>
+        <div class="text-base">Media/Month</div>
+      </div>
+      <div>
+        <div class="font-semibold text-xl">144K</div>
+        <div class="text-base">Ad Impressions/Month</div>
+      </div>
+      <div>
+        <div class="font-semibold text-xl">€5</div>
+        <div class="text-base">eCPM</div>
+      </div>
+      <div>
+        <div class="font-semibold text-xl text-green-600">€324</div>
+        <div class="text-base">Monthly Creator Revenue</div>
+      </div>
+    </div>
+  </div>
+  
+  <div v-click="1" class="absolute top-0 left-0 right-0 bottom-0 p-4">
+    <div class="font-bold text-3xl">💰 Key Unit Economics</div>
+    <div class="text-2xl">(per 1k Media Generations – 2027)</div>
+    <div class="mt-4">
+      <div class="flex justify-between items-center mb-2">
+        <div class="font-semibold">Ad Revenue (Net via Partners):</div>
+        <div class="font-bold">~€1.40</div>
+      </div>
+      <div class="flex justify-between items-center mb-2">
+        <div class="font-semibold">AI Compute Cost:</div>
+        <div class="font-bold">~€0.20</div>
+      </div>
+      <div class="flex justify-between items-center mb-2 text-green-600 font-bold">
+        <div>Net Revenue (Post Cloud & Nectar):</div>
+        <div>~€0.84</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+::right::
+
+<div class="flex justify-center items-center h-full">
+  <img src="/media/tier-ladder.png" alt="Media Generated Growth" class="w-3/5 rounded-lg shadow-lg">
+</div>
+
+<!--
+### From Prompt to Profit
+
+#### Overview
+* Let me walk you through our clear **3-step journey** for creators
+* Step 1 - **Seed** (Live Today): We provide completely **free tools** and **ad-supported compute** through our partners
+* This **removes all barriers** to entry and helps creators get started immediately
+* Step 2 - **Flower** (H2 '25): Apps begin to **self-fund** their own compute costs through ad revenue
+* At this stage, Pollinations earns **platform revenue** from our partners, and creators get **better models** and **higher limits**
+* Step 3 - **Nectar** (H2 '26): For top-performing apps, we introduce a **50/50 net ad revenue share** from our partner revenue
+* To put this in perspective: With 1M MAU and a $1.50 CPM, that's about **$13.5K net monthly revenue**, with **$6.75K going directly** to the developer
+* This creates a **sustainable ecosystem** where **everyone wins** - creators, advertisers, and Pollinations
+
+#### Unit economics
+- **Each 1,000 media units generate €1.40** in ad revenue via contextual placements.
+- **AI compute costs remain low at €0.20**, thanks to model efficiency at scale.
+- After creator share, we retain **€0.84 net per 1k outputs**.
+- This margin **covers infra in real-time** and scales linearly with demand.
+- **Value is shared** with creators without compromising platform profitability.
+
+- **Net Revenue per App/Year**: €626 (from table)
+- **Lifetime** (App stays active): 2 years (conservative)
+- **LTV per App**: €1,252
+- **CAC per App** (e.g. devrel): €50 (Discord, hackathons, docs, demos)
+- **LTV/CAC Ratio**: ~25x
+
+## End
+-->
+
+---
+layout: two-cols-header
+---
+
+<div class="flex items-center justify-between gap-4">
+  <h1><span class="bg-black text-white p-2 rounded"><strong>👥 Team</strong></span></h1>
+  <img src="/media/pollinations-ai-logo.png" alt="Pollinations AI Logo" class="h-15">
+</div>
+
+<br>
+
+<div class="flex flex-col md:flex-row gap-6 mb-6 justify-center items-stretch">
+  <div class="bg-gray-100 p-5 rounded-lg w-full md:w-1/2 flex-1 shadow-md border-l-4 border-blue-500">
+    <div class="flex items-center mb-3">
+      <img src="/media/2.png" alt="Thomas Haferlach" class="w-25 h-25 rounded-full mr-4 border-2 border-gray-300 shadow" />
+      <div>
+        <h2 class="font-bold text-xl mb-1">Thomas Haferlach</h2>
+        <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold inline-block">CEO</div>
+        <p class="text-2xl text-gray-700">8+ yrs GenAI, Ex-Amazon, EU Funding Winner</p>
+      </div>
+    </div>
+    <div class="flex justify-end mt-3">
+      <img src="/media/amazon_logo.png" alt="Amazon" class="h-5 mr-3 opacity-70" />
+      <img src="/media/sun-logo.png" alt="Sun" class="h-5 opacity-70" />
+    </div>
+  </div>
+
+  <div class="bg-gray-100 p-5 rounded-lg w-full md:w-1/2 flex-1 shadow-md border-l-4 border-green-500">
+    <div class="flex items-center mb-3">
+      <img src="/media/1.png" alt="Elliot Fouchy" class="w-25 h-25 rounded-full mr-4 border-2 border-gray-300 shadow" />
+      <div>
+        <h2 class="font-bold text-xl mb-1">Elliot Fouchy</h2>
+        <div class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold inline-block">COO</div>
+        <p class="text-2xl text-gray-700">6+ yrs AI Ops, Built Efficient AI Infra</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+## 🔍 **Planned Hires**
+
+::left::
+
+### **1.** MLOps & Infrastructure Lead 🛠️ 
+
+::right::
+
+### **2.** Community & Creator Success 👥
+### 🤝 **Kalam** (Incoming)
+
+<!--
+## Team - Experience Where It Matters Most
+* I'm Thomas, the CEO - I bring **8+ years of generative AI** experience
+* I've scaled platforms to over **100M requests per month** and worked at **Amazon AI**
+* I also won **1.2m EU funding** for previous AI projects - I know how to **build and scale**
+* My co-founder Elliot is our COO with **6+ years of AI operations** experience
+* He's built **efficient AI infrastructure** for multiple scale-ups - crucial for our model
+* **Lead MLOps / Infra Engineer** (H2 2025): GPU fleet optimization, Scaling Backend, Model-serving pipeline
+* **Kalam** (Head of Community & Creator Success, H2 2025): Creator onboarding, XR/UGC initiatives, User acquisition
+
+## End
+-->
+
+---
+layout: two-cols-header
+---
+
+# <span class="bg-teal-600 text-white p-2 rounded">**🤝 We are raising - reach out: hello@pollinations.ai**</span>
+
+::left::
+
+# 🚀 **Now | Activate**
+### - Native Ad Toolkit
+#
+### - Flower GA
+#
+### - Nectar pilot
+#
+### - Contextual-Ad Partners
+#
+### - Project Hosting
+#
+### - Polli Assistant
+
+<br>
+
+::right::
+
+# 📈 **+12 mo | Scale**
+### - Nectar GA
+#
+### - Monthly payouts
+#
+### - Ecosystem Fund
+#
+### - Dynamic & interactive ad formats
+
+<br>
+
+<!--
+## Roadmap - Fueling the AI App Monetization Revolution
+* Let me share our clear roadmap to fuel this **AI app monetization revolution**
+
+* **Right Now - Activation Phase:**
+  * We're shipping our **Native Ad Toolkit** for seamless partner integration
+  * We're launching **Polli Assistant** to make creation even easier
+  * We're expanding our **Nectar pilot** beyond Roblox to more app types
+  * We're onboarding specialized **Contextual-Ad Partners** like Garlic
+  * We're starting **Project Hosting** to further reduce barriers to entry
+
+* **Next 12 Months - Scaling Phase:**
+  * We'll launch **Nectar GA** with the **50/50 revenue sharing** model
+  * We'll implement **monthly payouts** and create an **Ecosystem Fund**
+  * We'll introduce **dynamic and interactive ad formats** with our partners
+  * We'll build **global creator community programs** to drive adoption
+
+* This roadmap systematically **builds our flywheel** and creates **value for all stakeholders**
+## End
 -->
