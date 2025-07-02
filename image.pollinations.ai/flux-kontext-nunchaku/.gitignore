@@ -1,0 +1,30 @@
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+
+# Model cache
+hf_cache/
+hf_home/
+
+# Logs
+*.log
+app.log
+
+# Image outputs
+*.png
+*.jpg
+*.jpeg
+!example_*.png
+
+# System files
+.DS_Store
+.vscode/
+.idea/

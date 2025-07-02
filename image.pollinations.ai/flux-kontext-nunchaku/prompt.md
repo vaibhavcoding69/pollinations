@@ -1,0 +1,1 @@
+check the https://github.com/mit-han-lab/nunchaku?tab=readme-ov-file repository and install it and run it in the most simple way possible. i think we need to clone it and install the requirements. there is already some code to test it in @flux-kontext-example.py - do it in the most simple and straightforward way possible. @web 
