@@ -637,8 +637,17 @@ const callKontextAPI = async (prompt, safeParams) => {
       }
     }
     
+    // Get the API key from environment variables
+    const apiKey = process.env.FLUX_KONTEXT_KEY;
+    if (!apiKey) {
+      throw new Error('FLUX_KONTEXT_KEY not found in environment variables');
+    }
+    
     const response = await fetch('http://51.159.184.240:8000/generate', {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`
+      },
       body: formData,
       timeout: 120000 // 2 minute timeout
     });

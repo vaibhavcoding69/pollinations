@@ -136,6 +136,7 @@ Generates an image based on a text description.
 | `enhance`  | No       | Set to `true` to enhance the prompt using an LLM for more detail.                  | `false` |
 | `safe`     | No       | Set to `true` for strict NSFW filtering (throws error if detected).                | `false` |
 | `transparent` | No    | Set to `true` to generate images with transparent backgrounds (gptimage model only). | `false` |
+| `image` | No | URL(s) of input image(s) for image-to-image generation. See [Image Input Support](#image-input-support-🖼️🔄). | |
 | `referrer` | No\*     | Referrer URL/Identifier. See [Referrer Section](#referrer-).                       |         |
 
 **Return:** Image file (typically JPEG) 🖼️
@@ -192,6 +193,25 @@ except requests.exceptions.RequestException as e:
 ```
 
 </details>
+
+---
+
+### Image Input Support 🖼️🔄
+
+Some models support **image-to-image** generation by providing image URL(s) via the `image` parameter.
+
+**Supported Models:**
+- `gptimage` - Image editing, transparent backgrounds (`transparent=true`). **Requires authentication.**
+- `kontext` - Voxel art transformation. **Requires seed tier+ (token/referrer needed).**
+
+**Usage:**
+```
+# Single image input
+https://image.pollinations.ai/prompt/transform_to_voxel_art?model=kontext&image=https://example.com/input.jpg
+
+# Multiple images (comma-separated)
+https://image.pollinations.ai/prompt/combine_images?model=gptimage&image=url1.jpg,url2.jpg
+```
 
 ---
 
