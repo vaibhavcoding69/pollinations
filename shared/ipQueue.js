@@ -21,10 +21,10 @@ const authLog = debug("pollinations:auth");
 const queues = new Map();
 
 const tierCaps = {
-	anonymous: 1,
-	seed: 3,
-	flower: 10,
-	nectar: 30,
+    anonymous: 1,
+    seed: 3,
+    flower: 7,
+    nectar: 50,
 };
 
 /**
@@ -36,39 +36,33 @@ const tierCaps = {
  * @param {Object} options - Queue options
  * @param {number} [options.interval=6000] - Time between requests in ms
  * @param {number} [options.cap=1] - Number of requests allowed per interval
- * @param {boolean} [options.forceQueue=false] - Force queuing even for authenticated requests
- * @param {number} [options.maxQueueSize] - Maximum queue size per IP (throws error if exceeded)
  * @returns {Promise<any>} Result of the function execution
  */
-export async function enqueue(
-	req,
-	fn,
-	{ interval = 6000, cap = 1, forceQueue = false, maxQueueSize } = {},
-) {
-	// Extract useful request info for logging
-	const url = req.url || "no-url";
-	const method = req.method || "no-method";
-	const path = url.split("?")[0] || "no-path";
-	let ip =
-		req.headers?.get?.("cf-connecting-ip") ||
-		req.headers?.["cf-connecting-ip"] ||
-		req.ip ||
-		"unknown";
+export async function enqueue(req, fn, { interval = 6000, cap = 1 } = {}) {
+    // Extract useful request info for logging
+    const url = req.url || "no-url";
+    const method = req.method || "no-method";
+    const path = url.split("?")[0] || "no-path";
+    let ip =
+        req.headers?.get?.("cf-connecting-ip") ||
+        req.headers?.["cf-connecting-ip"] ||
+        req.ip ||
+        "unknown";
 
-	authLog("Processing request: %s %s from IP: %s", method, path, ip);
+    authLog("Processing request: %s %s from IP: %s", method, path, ip);
 
-	// Get authentication status
-	authLog("Checking authentication for request: %s", path);
-	const authResult = await shouldBypassQueue(req);
+    // Get authentication status
+    authLog("Checking authentication for request: %s", path);
+    const authResult = await shouldBypassQueue(req);
 
-	// Log the authentication result with tier information
-	authLog(
-		"Authentication result: reason=%s, authenticated=%s, userId=%s, tier=%s",
-		authResult.reason,
-		authResult.authenticated,
-		authResult.userId || "none",
-		authResult.tier || "none",
-	);
+    // Log the authentication result with tier information
+    authLog(
+        "Authentication result: reason=%s, authenticated=%s, userId=%s, tier=%s",
+        authResult.reason,
+        authResult.authenticated,
+        authResult.userId || "none",
+        authResult.tier || "none",
+    );
 
 	// Check if there's an error in the auth result (invalid token)
 	if (authResult.error) {
@@ -122,6 +116,7 @@ export async function enqueue(
 
 	cap = tierCaps[authResult.tier] || 1;
 
+	const maxQueueSize = cap * 5;
 	// Apply tier-based concurrency limits for token-authenticated requests
 	if (authResult.tokenAuth) {
 		// // // Token authentication gets zero interval (no delay between requests)
@@ -140,6 +135,25 @@ export async function enqueue(
 	const currentQueueSize = queues.get(ip)?.size || 0;
 	const currentPending = queues.get(ip)?.pending || 0;
 	const totalInQueue = currentQueueSize + currentPending;
+
+	// Capture queue information for logging
+	const queueInfo = {
+		ip: ip,
+		queueSize: currentQueueSize,
+		pending: currentPending,
+		total: totalInQueue,
+		position: totalInQueue + 1, // This request's position in queue
+		enqueuedAt: new Date().toISOString(),
+		tier: authResult.tier || "anonymous",
+		authenticated: authResult.authenticated || false,
+	};
+
+	// Store queue info in request object for later access
+	if (req && typeof req === "object") {
+		req.queueInfo = queueInfo;
+	}
+
+	log("Queue info captured: %O", queueInfo);
 
 	// Check if adding to queue would exceed maxQueueSize
 	if (maxQueueSize && totalInQueue >= maxQueueSize) {
@@ -169,11 +183,10 @@ export async function enqueue(
 
 	// Otherwise, queue the function based on IP
 	log(
-		"Request queued for IP: %s (queue size: %d, pending: %d, forceQueue: %s)",
+		"Request queued for IP: %s (queue size: %d, pending: %d)",
 		ip,
 		currentQueueSize,
 		currentPending,
-		forceQueue,
 	);
 
 	// Create queue for this IP if it doesn't exist

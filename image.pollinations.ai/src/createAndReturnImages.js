@@ -31,6 +31,7 @@ const logError = debug("pollinations:error");
 const logPerf = debug("pollinations:perf");
 const logOps = debug("pollinations:ops");
 const logCloudflare = debug("pollinations:cloudflare");
+const logTier = debug("pollinations:tier");
 
 // Constants
 const TARGET_PIXEL_COUNT = 1024 * 1024; // 1 megapixel
@@ -794,6 +795,38 @@ const generateImage = async (
 	requestId,
 	userInfo,
 ) => {
+	// Handle model switching for 'gptimage' when no image is provided
+	// Only switch to 'flux' if user is not nectar tier (nectar tier users can use gptimage without images)
+	if (safeParams.model === "gptimage" && safeParams.image.length === 0) {
+		logTier("=== TIER CHECK DEBUG ===");
+		logTier("userInfo object:", JSON.stringify(userInfo, null, 2));
+		logTier("userInfo.tier:", userInfo?.tier);
+		logTier('Checking hasSufficientTier(userInfo?.tier, "nectar")');
+
+		const isNectarTier = hasSufficientTier(userInfo?.tier, "nectar");
+		logTier("hasSufficientTier result:", isNectarTier);
+
+		if (!isNectarTier) {
+			safeParams.model = "flux";
+			logTier(
+				"❌ Switching model from gptimage to flux (user not nectar tier)",
+			);
+			logTier(
+				"Final decision: tier=%s, userId=%s, switched to flux",
+				userInfo?.tier || "none",
+				userInfo?.userId || "none",
+			);
+		} else {
+			logTier("✅ Keeping gptimage model (user has nectar tier)");
+			logTier(
+				"Final decision: tier=%s, userId=%s, keeping gptimage",
+				userInfo?.tier || "none",
+				userInfo?.userId || "none",
+			);
+		}
+		logTier("=== END TIER CHECK ===");
+	}
+
 	// Model selection strategy using a more functional approach
 	if (safeParams.model === "gptimage") {
 		// Detailed logging of authentication info for GPT image access
