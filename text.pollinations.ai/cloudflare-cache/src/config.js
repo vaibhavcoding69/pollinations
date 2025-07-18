@@ -1,6 +1,6 @@
 // Semantic cache configuration
 export const SEMANTIC_CACHE_ENABLED = true;
-export const SEMANTIC_SIMILARITY_THRESHOLD = 0.82; // Similarity threshold for a cache hit
+export const SEMANTIC_SIMILARITY_THRESHOLD = 0.83; // Similarity threshold for a cache hit
 
 // Embedding model configuration
 export const EMBEDDING_MODEL = "@cf/baai/bge-m3";
