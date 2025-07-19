@@ -50,8 +50,9 @@ export async function findSimilarText(
 		const embedding = await generateEmbedding(cache.embeddingService, text);
 
 		// Query with model-specific AND user-specific metadata filter - TEMPORARILY DISABLED FOR DEBUGGING
+		// Get top 3 results for random selection
 		const searchResults = await cache.vectorize.query(embedding, {
-			topK: 1,
+			topK: 3,
 			// filter: {
 			//   model: modelName,
 			//   userPrefix: userPrefix
@@ -74,20 +75,30 @@ export async function findSimilarText(
 			};
 		}
 
-		const bestMatch = searchResults.matches[0];
-		if (bestMatch.score >= cache.similarityThreshold) {
+		// Filter matches that are above the threshold
+		const aboveThresholdMatches = searchResults.matches.filter(
+			match => match.score >= cache.similarityThreshold
+		);
+
+		if (aboveThresholdMatches.length > 0) {
+			// Randomly select one of the matches above threshold
+			const randomIndex = Math.floor(Math.random() * aboveThresholdMatches.length);
+			const selectedMatch = aboveThresholdMatches[randomIndex];
+			
 			console.log(
-				`[SEMANTIC_CACHE] Found similar text for model ${modelName}, user ${userPrefix}: score=${bestMatch.score}`,
+				`[SEMANTIC_CACHE] Found ${aboveThresholdMatches.length} matches above threshold, randomly selected #${randomIndex + 1} with score=${selectedMatch.score}`,
 			);
 			return {
-				cacheKey: bestMatch.id,
-				similarity: bestMatch.score,
-				model: bestMatch.metadata?.model || "unknown",
-				userPrefix: bestMatch.metadata?.userPrefix || "anon",
+				cacheKey: selectedMatch.id,
+				similarity: selectedMatch.score,
+				model: selectedMatch.metadata?.model || "unknown",
+				userPrefix: selectedMatch.metadata?.userPrefix || "anon",
 				aboveThreshold: true,
 			};
 		}
 
+		// No matches above threshold, return the best match for similarity reporting
+		const bestMatch = searchResults.matches[0];
 		console.log(
 			`[SEMANTIC_CACHE] Best match similarity below threshold: ${bestMatch.score} < ${cache.similarityThreshold}`,
 		);
