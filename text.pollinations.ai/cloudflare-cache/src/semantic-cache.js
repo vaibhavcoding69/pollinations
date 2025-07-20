@@ -5,7 +5,68 @@ import {
 import {
 	SEMANTIC_SIMILARITY_THRESHOLD,
 	SEMANTIC_CACHE_ENABLED,
+	FALLBACK_THRESHOLD,
 } from "./config.js";
+
+// In-memory rolling statistics for dynamic thresholding
+const tokenStats = new Map();
+
+class RollingStats {
+	constructor(windowSize = 200, targetHitRate = 20) {
+		this.scores = [];
+		this.windowSize = windowSize;
+		this.targetHitRate = targetHitRate;
+	}
+	
+	addScore(score) {
+		this.scores.push(score);
+		
+		if (this.scores.length > this.windowSize) {
+			this.scores.shift(); // Remove oldest score
+		}
+	}
+	
+	getDynamicThreshold() {
+		if (this.scores.length < 7) {
+			return 0.9; // Conservative threshold until we have enough samples
+		}
+		
+		// Calculate 80th percentile (20% hit rate target - 80% should be below threshold)
+		const sorted = [...this.scores].sort((a, b) => a - b);
+		const index = Math.floor(((100 - this.targetHitRate) / 100) * sorted.length);
+		return sorted[index] || 0.9;
+	}
+	
+	getStats() {
+		return {
+			samples: this.scores.length,
+			threshold: this.getDynamicThreshold()
+		};
+	}
+}
+
+function getTokenStats(tokenHash) {
+	if (!tokenStats.has(tokenHash)) {
+		tokenStats.set(tokenHash, new RollingStats());
+	}
+	return tokenStats.get(tokenHash);
+}
+
+// Get dynamic threshold for a specific token using rolling averages
+function getDynamicThreshold(token) {
+	if (!token) {
+		return 0.9;
+	}
+	
+	const tokenHash = token.substring(0, 8);
+	const stats = getTokenStats(tokenHash);
+	const threshold = stats.getDynamicThreshold();
+	
+	const { samples } = stats.getStats();
+	console.log(`[SEMANTIC_CACHE] Token ${tokenHash}: threshold=${threshold.toFixed(3)} (${samples} samples)`);
+	
+	return threshold;
+}
 
 // Create a semantic cache instance
 export function createSemanticCache(env) {
@@ -13,7 +74,6 @@ export function createSemanticCache(env) {
 		r2: env.TEXT_BUCKET,
 		vectorize: env.VECTORIZE_INDEX,
 		ai: env.AI,
-		similarityThreshold: SEMANTIC_SIMILARITY_THRESHOLD,
 		embeddingService: createEmbeddingService(env.AI),
 	};
 }
@@ -24,6 +84,7 @@ export async function findSimilarText(
 	text,
 	modelName = "unknown",
 	userPrefix = "anon",
+	token = null,
 ) {
 	console.log(
 		`[SEMANTIC_CACHE] findSimilarText called with model: ${modelName}, userPrefix: ${userPrefix}, text length: ${text.length}`,
@@ -66,6 +127,12 @@ export async function findSimilarText(
 			console.log(
 				`[SEMANTIC_CACHE] No matches in Vectorize. Returning similarity 0`,
 			);
+			
+			// Log no matches for threshold analysis (greppable format)
+			const tokenHash = token ? token.substring(0, 8) : "anon";
+			const dynamicThreshold = getDynamicThreshold(token);
+			console.log(`SIMILARITY_SCORE|token:${tokenHash}|similarity:0|threshold:${dynamicThreshold}|result:NO_MATCHES|model:${modelName}`);
+			
 			return {
 				cacheKey: null,
 				similarity: 0,
@@ -75,9 +142,19 @@ export async function findSimilarText(
 			};
 		}
 
-		// Filter matches that are above the threshold
+		// Feed all similarity scores into rolling statistics for dynamic learning
+		const tokenHash = token ? token.substring(0, 8) : "anon";
+		const stats = getTokenStats(tokenHash);
+		searchResults.matches.forEach(match => {
+			stats.addScore(match.score);
+		});
+
+		// Get dynamic threshold for this token (now updated with new scores)
+		const dynamicThreshold = getDynamicThreshold(token);
+		
+		// Filter matches that are above the dynamic threshold
 		const aboveThresholdMatches = searchResults.matches.filter(
-			match => match.score >= cache.similarityThreshold
+			match => match.score >= dynamicThreshold
 		);
 
 		if (aboveThresholdMatches.length > 0) {
@@ -88,6 +165,10 @@ export async function findSimilarText(
 			console.log(
 				`[SEMANTIC_CACHE] Found ${aboveThresholdMatches.length} matches above threshold, randomly selected #${randomIndex + 1} with score=${selectedMatch.score}`,
 			);
+			
+			// Log similarity score for threshold analysis (greppable format)
+			console.log(`SIMILARITY_SCORE|token:${tokenHash}|similarity:${selectedMatch.score}|threshold:${dynamicThreshold}|result:HIT|model:${modelName}`);
+			
 			return {
 				cacheKey: selectedMatch.id,
 				similarity: selectedMatch.score,
@@ -100,8 +181,12 @@ export async function findSimilarText(
 		// No matches above threshold, return the best match for similarity reporting
 		const bestMatch = searchResults.matches[0];
 		console.log(
-			`[SEMANTIC_CACHE] Best match similarity below threshold: ${bestMatch.score} < ${cache.similarityThreshold}`,
+			`[SEMANTIC_CACHE] Best match similarity below threshold: ${bestMatch.score} < ${dynamicThreshold}`,
 		);
+		
+		// Log similarity score for threshold analysis (greppable format)
+		console.log(`SIMILARITY_SCORE|token:${tokenHash}|similarity:${bestMatch.score}|threshold:${dynamicThreshold}|result:MISS|model:${modelName}`);
+		
 		return {
 			cacheKey: null,
 			similarity: bestMatch.score,

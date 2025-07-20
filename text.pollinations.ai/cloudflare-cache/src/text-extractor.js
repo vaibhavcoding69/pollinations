@@ -68,9 +68,12 @@ function extractFromMessages(messages) {
 				break;
 
 			// Filter out system messages from semantic caching
-			// case "system":
-			//   parts.push(`[SYSTEM] ${content}`);
-			//   break;
+			case "system":
+				let importantContent = content.split("Message History:")[1]?.trim();
+				if (importantContent && importantContent.length > 0) {
+					parts.push(`[SYSTEM] ${importantContent}`);
+				}
+				break;
 
 			default:
 				// Skip other roles for cleaner semantic matching

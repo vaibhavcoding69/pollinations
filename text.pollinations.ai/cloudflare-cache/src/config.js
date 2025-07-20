@@ -1,6 +1,9 @@
 // Semantic cache configuration
 export const SEMANTIC_CACHE_ENABLED = true;
-export const SEMANTIC_SIMILARITY_THRESHOLD = 0.83; // Similarity threshold for a cache hit
+export const SEMANTIC_SIMILARITY_THRESHOLD = 0.83; // Default similarity threshold for a cache hit
+
+// Fallback threshold for tokens not in the dynamic list
+export const FALLBACK_THRESHOLD = 0.9;
 
 // Embedding model configuration
 export const EMBEDDING_MODEL = "@cf/baai/bge-m3";

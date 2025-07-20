@@ -208,6 +208,7 @@ export default {
 					// Parse body for auth functions (don't modify request object)
 					try {
 						parsedBody = JSON.parse(rawBody);
+						log("cache", `Parsed JSON body: ${JSON.stringify(parsedBody)}`);
 					} catch (e) {
 						log("cache", `Could not parse JSON body: ${e.message}`);
 						parsedBody = null;
@@ -329,6 +330,7 @@ export default {
 						requestText,
 						modelName,
 						userPrefix,
+						token,
 					);
 					log("cache", `findSimilarText returned:`, similar);
 				} else {
@@ -402,7 +404,7 @@ export default {
 				}
 			} else if (similar) {
 				console.log(
-					`[CACHE] Similar text found but below threshold: ${similar.similarity} < ${semanticCache.similarityThreshold}`,
+					`[CACHE] Similar text found but below threshold}`,
 				);
 			}
 
@@ -730,6 +732,8 @@ async function proxyRequest(request, env) {
 		redirect: "manual",
 	});
 
+	// log complete request
+	// log("proxyRawBody", JSON.stringify(request.body, null, 2));
 	// Send the request to the origin
 	return await fetch(originRequest);
 }

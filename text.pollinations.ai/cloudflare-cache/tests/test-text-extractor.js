@@ -1,8 +1,6 @@
 import assert from 'assert';
 import { extractAndNormalizeSemanticText } from '../src/text-extractor.js';
 import { 
-    SEMANTIC_WEIGHTING_ENABLED, 
-    RECENT_TURNS_COUNT, 
     HISTORY_SEPARATOR, 
     LATEST_EXCHANGE_START_TAG, 
     LATEST_EXCHANGE_END_TAG 
