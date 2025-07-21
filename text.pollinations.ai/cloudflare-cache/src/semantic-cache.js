@@ -12,7 +12,7 @@ import {
 const tokenStats = new Map();
 
 class RollingStats {
-	constructor(windowSize = 200, targetHitRate = 20) {
+	constructor(windowSize = 200, targetHitRate = 50) {
 		this.scores = [];
 		this.windowSize = windowSize;
 		this.targetHitRate = targetHitRate;
