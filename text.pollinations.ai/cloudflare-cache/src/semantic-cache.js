@@ -34,7 +34,10 @@ class RollingStats {
 		// Calculate 80th percentile (20% hit rate target - 80% should be below threshold)
 		const sorted = [...this.scores].sort((a, b) => a - b);
 		const index = Math.floor(((100 - this.targetHitRate) / 100) * sorted.length);
-		return sorted[index] || 0.9;
+		const calculatedThreshold = sorted[index] || 0.9;
+		
+		// Enforce minimum threshold of 0.7
+		return Math.max(calculatedThreshold, 0.7);
 	}
 	
 	getStats() {
