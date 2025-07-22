@@ -27,6 +27,7 @@ class RollingStats {
 	}
 	
 	getDynamicThreshold() {
+		console.log(`[SEMANTIC_CACHE] RollingStats: ${this.scores.length} scores, ${this.targetHitRate}% hit rate target`);
 		if (this.scores.length < 7) {
 			return 0.9; // Conservative threshold until we have enough samples
 		}
