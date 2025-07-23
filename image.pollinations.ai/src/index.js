@@ -13,6 +13,8 @@ import { countFluxJobs } from "./availableServers.js";
 import { handleRegisterEndpoint } from "./availableServers.js";
 import debug from "debug";
 import { createProgressTracker } from "./progressBar.js";
+// Tinybird telemetry
+import { sendTinybirdEvent } from "../observability/tinybirdTracker.js";
 import fs from "fs";
 import path from "path";
 
@@ -180,8 +182,9 @@ const imageGen = async ({
         progress.updateBar(requestId, 50, "Generation", "Starting generation");
 
         progress.updateBar(requestId, 95, "Finalizing", "Processing complete");
+        const endTime = new Date();
         timingInfo.push({
-            step: "Generation completed.",
+            step: "Image returned",
             timestamp: Date.now(),
         });
 
@@ -195,6 +198,19 @@ const imageGen = async ({
             await sleep(5000);
         }
         progress.updateBar(requestId, 90, "Safety", "Check complete");
+
+        // Send telemetry to Tinybird (success)
+        sendTinybirdEvent({
+            startTime: new Date(timingInfo[0]?.timestamp || Date.now()),
+            endTime,
+            requestId,
+            model: safeParams.model || "image", // image generation model param
+            duration: endTime - (timingInfo[0]?.timestamp || Date.now()),
+            status: "success",
+            project: "image.pollinations.ai",
+            environment: process.env.NODE_ENV || "production",
+            ...authResult,
+        });
 
         timingInfo.push({ step: "Image returned", timestamp: Date.now() });
 
@@ -254,6 +270,20 @@ const imageGen = async ({
         progress.stop();
 
         // Log detailed error information
+        // Send telemetry to Tinybird (error)
+        sendTinybirdEvent({
+            startTime: new Date(timingInfo[0]?.timestamp || Date.now()),
+            endTime: new Date(),
+            requestId,
+            model: safeParams.model || "image",
+            duration: Date.now() - (timingInfo[0]?.timestamp || Date.now()),
+            status: "error",
+            error,
+            project: "image.pollinations.ai",
+            environment: process.env.NODE_ENV || "production",
+            ...authResult,
+        });
+
         console.error("Image generation failed:", {
             error: error.message,
             stack: error.stack,
