@@ -118,10 +118,10 @@ export async function findSimilarText(
 		// Get top 3 results for random selection
 		const searchResults = await cache.vectorize.query(embedding, {
 			topK: 3,
-			// filter: {
-			//   model: modelName,
-			//   userPrefix: userPrefix
-			// },
+			filter: {
+			  model: modelName,
+			  userPrefix: userPrefix
+			},
 			returnMetadata: "all",
 		});
 
