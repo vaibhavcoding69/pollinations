@@ -1,5 +1,5 @@
 // Semantic cache configuration
-export const SEMANTIC_CACHE_ENABLED = true;
+export const SEMANTIC_CACHE_ENABLED = false;
 export const SEMANTIC_SIMILARITY_THRESHOLD = 0.83; // Default similarity threshold for a cache hit
 
 // Fallback threshold for tokens not in the dynamic list
