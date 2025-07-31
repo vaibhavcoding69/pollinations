@@ -300,3 +300,7 @@ image.pollinations.ai/cloudflare-cache/scripts/catgpt_keys.txt
 semantic_similarities.csv
 averages.txt
 text.pollinations.ai/cloudflare-cache/semantic_cache_evaluation.jsonl
+
+# Crush config
+.crush
+

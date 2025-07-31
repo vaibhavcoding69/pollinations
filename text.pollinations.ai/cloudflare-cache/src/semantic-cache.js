@@ -114,8 +114,10 @@ export async function findSimilarText(
 	try {
 		const embedding = await generateEmbedding(cache.embeddingService, text);
 
-		// Query with model-specific AND user-specific metadata filter - TEMPORARILY DISABLED FOR DEBUGGING
+		// Query with model-specific AND user-specific metadata filter
 		// Get top 3 results for random selection
+		console.log(`[SEMANTIC_CACHE] Searching with filters: model="${modelName}", userPrefix="${userPrefix}"`);
+		
 		const searchResults = await cache.vectorize.query(embedding, {
 			topK: 3,
 			filter: {
@@ -236,6 +238,8 @@ export async function cacheTextEmbedding(
 		}
 
 		// Store vector with model AND user metadata for filtering
+		console.log(`[SEMANTIC_CACHE] Storing with metadata: model="${modelName}", userPrefix="${userPrefix}"`);
+		
 		const upsertResult = await cache.vectorize.upsert([
 			{
 				id: cacheKey,

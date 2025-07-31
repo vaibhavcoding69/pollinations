@@ -256,10 +256,19 @@ export default {
 				}
 			}
 
-			// Extract user context for per-token caching
-			const userPrefix = extractToken(request) || "anon";
+			// Extract token properly for both cache isolation and eligibility checking
+			// Create a request-like object for token extraction with parsed body
+			const requestForTokenExtraction = {
+				method: request.method,
+				url: request.url,
+				headers: request.headers,
+				body: parsedBody,
+			};
+			const token = extractToken(requestForTokenExtraction);
+			const userPrefix = token || "anon";
+			log("cache", `User prefix for cache isolation: ${userPrefix}`);
 
-			// Generate cache key (remains user-agnostic for direct cache)
+			// Generate cache key
 			const key = await generateCacheKey(request);
 			log("cache", `Key: ${key}`);
 
@@ -284,14 +293,6 @@ export default {
 			log("cache", "Direct cache miss, checking semantic cache eligibility...");
 
 			// Check if token is eligible for semantic cache
-			// Create a request-like object for token extraction with parsed body
-			const requestForTokenExtraction = {
-				method: request.method,
-				url: request.url,
-				headers: request.headers,
-				body: parsedBody,
-			};
-			const token = extractToken(requestForTokenExtraction);
 			const isEligible = isSemanticCacheEligibleForToken(token, env);
 
 			const eligibility = {
