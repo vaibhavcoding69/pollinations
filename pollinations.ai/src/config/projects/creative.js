@@ -5,6 +5,15 @@
 
 export const creativeProjects = [
     {
+        name: "Gemini Creative Suite 🎨",
+        url: "https://omnx.vercel.app/",
+        description: "A web application that changes the way we create with three AI-powered tools: Story Weaver transforms your ideas into captivating stories, Image Forge generates visuals from simple descriptions, and Brainstorm Buddy helps overcome creative blocks. Provides professional quality, immediate use without registration, and is completely free.",
+        author: "@DevMaestro",
+        repo: "https://github.com/matserh/Mynx.git",
+        submissionDate: "2025-08-03",
+        order: 1,
+    },
+    {
         name: "🇷🇺 Aimpress",
         url: "https://aimpress.ru/",
         description: "AIMpress is a web-based image generation platform that allows users to create AI-generated images by writing their own prompts. Users can also optionally select styles, effects, and aspect ratios to customize their results. Every generated image is automatically saved and published to a public archive, effectively creating a massive and growing stock of AI-generated visuals. This database is searchable, allowing users to discover and reuse images based on prompts, styles, or tags.",
