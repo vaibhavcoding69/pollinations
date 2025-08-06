@@ -461,7 +461,7 @@ const models = [
 		provider: "scaleway",
 		uncensored: true,
 		tier: "seed",
-		community: true,.
+		community: true,
 		input_modalities: ["text", "image"],
 		output_modalities: ["text"],
 		tools: true,
@@ -530,7 +530,7 @@ const models = [
 		handler: bidara,
 		// openai-large
 		provider: "azure",
-		tier:. "anonymous",
+		tier: "anonymous",
 		community: true,
 		input_modalities: ["text", "image"],
 		output_modalities: ["text"],
