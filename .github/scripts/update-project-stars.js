@@ -26,13 +26,13 @@ const path = require("path");
 const https = require("https");
 
 // Import all project data
-import { vibeCodingProjects } from "../../pollinations.ai/src/config/projects/vibeCoding.js";
-import { creativeProjects } from "../../pollinations.ai/src/config/projects/creative.js";
-import { gamesProjects } from "../../pollinations.ai/src/config/projects/games.js";
-import { hackAndBuildProjects } from "../../pollinations.ai/src/config/projects/hackAndBuild.js";
-import { chatProjects } from "../../pollinations.ai/src/config/projects/chat.js";
-import { socialBotsProjects } from "../../pollinations.ai/src/config/projects/socialBots.js";
-import { learnProjects } from "../../pollinations.ai/src/config/projects/learn.js";
+const { vibeCodingProjects } = require("../../pollinations.ai/src/config/projects/vibeCoding.js");
+const { creativeProjects } = require("../../pollinations.ai/src/config/projects/creative.js");
+const { gamesProjects } = require("../../pollinations.ai/src/config/projects/games.js");
+const { hackAndBuildProjects } = require("../../pollinations.ai/src/config/projects/hackAndBuild.js");
+const { chatProjects } = require("../../pollinations.ai/src/config/projects/chat.js");
+const { socialBotsProjects } = require("../../pollinations.ai/src/config/projects/socialBots.js");
+const { learnProjects } = require("../../pollinations.ai/src/config/projects/learn.js");
 
 // Paths to project files (relative to the repository root)
 const PROJECT_LIST_PATH = path.join(
