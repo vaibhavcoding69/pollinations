@@ -24,6 +24,7 @@ jobs:
           node-version: '18'
       
       - name: Update GitHub star counts
+        working-directory: ./
         run: |
           node .github/scripts/update-project-stars.js
       
