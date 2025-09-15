@@ -21,9 +21,9 @@
  *
  */
 
-import fs from "fs";
-import path from "path";
-import https from "https";
+const fs = require("fs");
+const path = require("path");
+const https = require("https");
 
 // Import all project data
 import { vibeCodingProjects } from "../../pollinations.ai/src/config/projects/vibeCoding.js";
