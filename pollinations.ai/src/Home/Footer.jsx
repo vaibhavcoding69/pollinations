@@ -4,6 +4,13 @@ import { Fonts, SectionBG } from "../config/global";
 import StyledLink from "../components/StyledLink";
 import { SectionContainer } from "../components/SectionContainer";
 import Grid from "@mui/material/Grid2";
+import {
+    FOOTER_INFO_1,
+    FOOTER_INFO_2,
+    FOOTER_TERMS_CONDITIONS_LINK,
+} from "../config/copywrite";
+import { noLink } from "../config/llmTransforms";
+import { LLMTextManipulator } from "../components/LLMTextManipulator";
 import { trackEvent } from "../config/analytics";
 import { useTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
@@ -49,17 +56,6 @@ const Footer = () => {
                 padding="1em"
                 gap="2em"
                 marginBottom="4em"
-                sx={{
-                    paddingTop: "2em",
-                    borderTop: "4px solid #ff61d8",
-                    animation: "footer-border-shift 10s infinite linear",
-                    "@keyframes footer-border-shift": {
-                        "0%": { borderTopColor: "#ff61d8" },
-                        "33%": { borderTopColor: "#05ffa1" },
-                        "66%": { borderTopColor: "#ffcc00" },
-                        "100%": { borderTopColor: "#ff61d8" },
-                    },
-                }}
             >
                 <Grid
                     size={{ xs: 12, md: 6 }}
@@ -101,7 +97,10 @@ const Footer = () => {
                         sx={{ fontSize: "1.5em", fontFamily: Fonts.title }}
                     >
                         <StyledLink to="/terms" onClick={handleTermsLinkClick}>
-                            Terms & Conditions
+                            <LLMTextManipulator
+                                text={FOOTER_TERMS_CONDITIONS_LINK}
+                                transforms={[noLink]}
+                            />
                         </StyledLink>
                     </Box>
                     <Box
@@ -113,8 +112,14 @@ const Footer = () => {
                             marginTop: "0.5em",
                         }}
                     >
-                        <p>© 2025 pollinations.ai</p>
-                        <p>Open source AI innovation from Berlin</p>
+                        <LLMTextManipulator
+                            text={FOOTER_INFO_1}
+                            transforms={[noLink]}
+                        />
+                        <LLMTextManipulator
+                            text={FOOTER_INFO_2}
+                            transforms={[noLink]}
+                        />
                     </Box>
                 </Grid>
             </Box>

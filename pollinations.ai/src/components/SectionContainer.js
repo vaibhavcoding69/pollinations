@@ -42,13 +42,11 @@ export const SectionSubContainer = styled.div`
   background-color: ${(props) => props.backgroundColor || "transparent"};
   flex-direction: ${(props) => props.flexDirection || "column"};
   align-items: ${(props) => props.alignItems || "center"};
-  margin: 0 auto;
+  margin: 0;
   width: 100%;
-  max-width: 900px;
+  max-width: 1000px;
   padding-bottom: ${(props) => props.paddingBottom || "1em"};
   padding-top: 2em;
-  padding-left: 20px;
-  padding-right: 20px;
   justify-content: center;
   z-index: ${(props) => props.zIndex || "1"};
 `;

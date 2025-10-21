@@ -20,28 +20,21 @@ export const CSS = `
 
 body { 
     font-family: 'Space Grotesk', sans-serif;
-    max-width: 900px; 
+    max-width: 800px; 
     margin: 0 auto; 
     padding: 20px;
     background-color: var(--color-bg);
     color: var(--color-text);
     overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 .container { 
     background: white;
-    padding: 40px; 
+    padding: 30px; 
     border-radius: 16px;
     position: relative;
     border: 3px solid var(--color-primary);
     animation: border-shift 10s infinite linear;
-    width: 100%;
-    max-width: 850px;
-    margin: 0 auto;
-    box-shadow: 0 4px 12px rgba(255, 97, 216, 0.1);
 }
 
 @keyframes border-shift {

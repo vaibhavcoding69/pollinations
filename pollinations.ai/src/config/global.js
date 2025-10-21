@@ -21,7 +21,7 @@ export const Fonts = {
 // Step 1: Create a new mapping object for section backgrounds
 export const SectionBG = {
     header: {
-        color: "#ffffff",
+        color: Colors.offwhite,
         gradient: false,
     },
     hero: {
@@ -61,7 +61,7 @@ export const SectionBG = {
         gradient: true,
     },
     footer: {
-        color: "#ffffff",
+        color: Colors.offwhite,
         gradient: false,
     },
 };
