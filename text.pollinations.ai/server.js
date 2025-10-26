@@ -21,7 +21,6 @@ import {
 import { logUserRequest } from "./logging/userLogger.js";
 import { logConversation } from "./logging/simpleLogger.js";
 import { checkAndLogMonitoredStrings, extractTextFromMessages } from "./utils/stringMonitor.js";
-import { uptimeMonitor } from "./uptimeMonitor.js";
 
 // Import shared utilities
 import { enqueue } from "../shared/ipQueue.js";
@@ -129,47 +128,6 @@ const QUEUE_CONFIG = {
 app.get("/models", (req, res) => {
 	// Use prepareModelsForOutput to remove pricing information and apply sorting
 	res.json(prepareModelsForOutput(availableModels));
-});
-
-// Uptime monitoring endpoints
-app.get("/uptime", (req, res) => {
-	res.json(uptimeMonitor.getAllUptime());
-});
-
-app.get("/uptime/:modelName", (req, res) => {
-	const { modelName } = req.params;
-	
-	try {
-		const uptimeData = uptimeMonitor.getModelUptime(modelName);
-		
-		if (!uptimeData) {
-			return res.status(404).json({ error: "Model not found" });
-		}
-		
-		res.json({
-			model: modelName,
-			...uptimeData,
-			uptimePercentage: uptimeMonitor.getUptimePercentage(modelName)
-		});
-	} catch (error) {
-		return res.status(400).json({ error: error.message });
-	}
-});
-
-app.post("/uptime/:modelName", bodyParser.json(), (req, res) => {
-	const { modelName } = req.params;
-	const { isUp, type = "text" } = req.body;
-	
-	if (typeof isUp !== "boolean") {
-		return res.status(400).json({ error: "isUp must be a boolean" });
-	}
-	
-	try {
-		uptimeMonitor.recordCheck(modelName, isUp, type);
-		res.json({ success: true, model: modelName, status: isUp ? "up" : "down" });
-	} catch (error) {
-		return res.status(400).json({ error: error.message });
-	}
 });
 
 setupFeedEndpoint(app);

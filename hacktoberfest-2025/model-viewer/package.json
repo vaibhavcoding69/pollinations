@@ -1,0 +1,15 @@
+{
+  "name": "model-viewer-uptime-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend service for monitoring Pollinations AI model uptime",
+  "main": "uptime-backend.js",
+  "scripts": {
+    "start": "node uptime-backend.js",
+    "dev": "node --watch uptime-backend.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "cors": "^2.8.5"
+  }
+}

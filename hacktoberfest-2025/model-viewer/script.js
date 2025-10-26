@@ -10,8 +10,13 @@ let state = {
     favorites: JSON.parse(localStorage.getItem('favorites') || '[]'),
     darkMode: localStorage.getItem('darkMode') === 'true',
     aiSummaries: {},
-    uptimeData: {} // Now loaded from backend instead of localStorage
+    uptimeData: {} // Now loaded from backend
 };
+
+// Backend URL - can be configured via environment
+const UPTIME_BACKEND = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3001'
+    : 'https://your-uptime-backend.com'; // Configure this for production
 
 // Pre-generated AI summaries for models
 const AI_SUMMARIES = {
@@ -178,92 +183,22 @@ const fallbackImageModels = [
     },
 ];
 
-// Uptime Checker - Backend-based version
+// Uptime Checker - Uses backend API
 class UptimeChecker {
     constructor() {
-        this.checkInterval = 5 * 60 * 1000; // Check every 5 minutes
         this.checking = new Set();
-        this.backendUrl = 'https://text.pollinations.ai';
     }
 
     async loadUptimeData() {
         try {
-            const response = await fetch(`${this.backendUrl}/uptime`);
+            const response = await fetch(`${UPTIME_BACKEND}/api/uptime`);
             if (response.ok) {
                 state.uptimeData = await response.json();
                 console.log('Loaded uptime data from backend');
             }
         } catch (error) {
-            console.error('Failed to load uptime data from backend:', error);
+            console.error('Failed to load uptime data:', error);
         }
-    }
-
-    async checkModelUptime(model, type) {
-        const modelName = model.name;
-        
-        if (this.checking.has(modelName)) {
-            return;
-        }
-
-        this.checking.add(modelName);
-
-        let isUp = false;
-
-        try {
-            if (type === 'text') {
-                // Check text model with a simple request
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
-                const response = await fetch('https://text.pollinations.ai/models', {
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-                
-                if (response.ok) {
-                    const models = await response.json();
-                    isUp = models.some(m => m.name === modelName);
-                }
-            } else if (type === 'image') {
-                // Check image model with HEAD request to avoid downloading
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-                const response = await fetch(`https://image.pollinations.ai/prompt/test?model=${modelName}&width=64&height=64&nologo=true`, {
-                    method: 'HEAD',
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-                
-                isUp = response.ok;
-            }
-        } catch (error) {
-            console.error(`Uptime check failed for ${modelName}:`, error);
-            isUp = false;
-        }
-
-        // Send uptime check result to backend
-        try {
-            await fetch(`${this.backendUrl}/uptime/${modelName}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    isUp,
-                    type
-                })
-            });
-
-            // Reload uptime data from backend
-            await this.loadUptimeData();
-        } catch (error) {
-            console.error(`Failed to record uptime check for ${modelName}:`, error);
-        }
-        
-        this.checking.delete(modelName);
-
-        return isUp;
     }
 
     getUptimePercentage(modelName) {
@@ -292,35 +227,19 @@ class UptimeChecker {
         return data.currentStatus;
     }
 
-    async checkAllModels() {
-        const textModels = state.models.textModels || [];
-        const imageModels = state.models.imageModels || [];
-
-        // Check text models
-        for (const model of textModels) {
-            await this.checkModelUptime(model, 'text');
-        }
-
-        // Check image models
-        for (const model of imageModels) {
-            await this.checkModelUptime(model, 'image');
-        }
-
-        // Re-render to update UI
+    async refreshUptimeData() {
+        await this.loadUptimeData();
         filterAndRenderModels();
     }
 
-    async startPeriodicChecks() {
-        // Load initial data from backend
-        await this.loadUptimeData();
-        
-        // Initial check
-        setTimeout(() => this.checkAllModels(), 1000);
+    startPeriodicRefresh() {
+        // Load initial data
+        this.loadUptimeData();
 
-        // Set up periodic checks
+        // Refresh every 5 minutes
         setInterval(() => {
-            this.checkAllModels();
-        }, this.checkInterval);
+            this.refreshUptimeData();
+        }, 5 * 60 * 1000);
     }
 }
 
@@ -371,8 +290,8 @@ async function loadModels() {
         
         filterAndRenderModels();
 
-        // Start uptime checking
-        uptimeChecker.startPeriodicChecks();
+        // Start uptime data refresh
+        uptimeChecker.startPeriodicRefresh();
     } catch (error) {
         console.error('Error loading models:', error);
     } finally {
