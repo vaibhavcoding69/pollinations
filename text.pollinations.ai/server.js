@@ -138,17 +138,22 @@ app.get("/uptime", (req, res) => {
 
 app.get("/uptime/:modelName", (req, res) => {
 	const { modelName } = req.params;
-	const uptimeData = uptimeMonitor.getModelUptime(modelName);
 	
-	if (!uptimeData) {
-		return res.status(404).json({ error: "Model not found" });
+	try {
+		const uptimeData = uptimeMonitor.getModelUptime(modelName);
+		
+		if (!uptimeData) {
+			return res.status(404).json({ error: "Model not found" });
+		}
+		
+		res.json({
+			model: modelName,
+			...uptimeData,
+			uptimePercentage: uptimeMonitor.getUptimePercentage(modelName)
+		});
+	} catch (error) {
+		return res.status(400).json({ error: error.message });
 	}
-	
-	res.json({
-		model: modelName,
-		...uptimeData,
-		uptimePercentage: uptimeMonitor.getUptimePercentage(modelName)
-	});
 });
 
 app.post("/uptime/:modelName", bodyParser.json(), (req, res) => {
@@ -159,8 +164,12 @@ app.post("/uptime/:modelName", bodyParser.json(), (req, res) => {
 		return res.status(400).json({ error: "isUp must be a boolean" });
 	}
 	
-	uptimeMonitor.recordCheck(modelName, isUp, type);
-	res.json({ success: true, model: modelName, status: isUp ? "up" : "down" });
+	try {
+		uptimeMonitor.recordCheck(modelName, isUp, type);
+		res.json({ success: true, model: modelName, status: isUp ? "up" : "down" });
+	} catch (error) {
+		return res.status(400).json({ error: error.message });
+	}
 });
 
 setupFeedEndpoint(app);

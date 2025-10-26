@@ -37,6 +37,26 @@ class UptimeMonitor {
         this.initialized = true;
     }
 
+    /**
+     * Validate and sanitize model name to prevent prototype pollution
+     * @param {string} modelName - Model name to validate
+     * @returns {string} - Validated model name
+     */
+    validateModelName(modelName) {
+        // Prevent prototype pollution
+        if (!modelName || typeof modelName !== 'string') {
+            throw new Error('Invalid model name');
+        }
+        
+        // Block dangerous property names
+        const dangerous = ['__proto__', 'constructor', 'prototype'];
+        if (dangerous.includes(modelName)) {
+            throw new Error('Invalid model name: protected property');
+        }
+        
+        return modelName;
+    }
+
     async loadData() {
         const data = await fs.readFile(this.dataFile, "utf8");
         this.uptimeData = JSON.parse(data);
@@ -58,8 +78,11 @@ class UptimeMonitor {
      * @param {string} type - Type of model ('text' or 'image')
      */
     recordCheck(modelName, isUp, type = "text") {
-        if (!this.uptimeData[modelName]) {
-            this.uptimeData[modelName] = {
+        // Validate model name to prevent prototype pollution
+        const validatedName = this.validateModelName(modelName);
+        
+        if (!this.uptimeData[validatedName]) {
+            this.uptimeData[validatedName] = {
                 history: [],
                 lastCheck: null,
                 currentStatus: "unknown",
@@ -73,17 +96,17 @@ class UptimeMonitor {
             status: isUp ? "up" : "down"
         };
 
-        this.uptimeData[modelName].history.push(uptimeEntry);
-        this.uptimeData[modelName].lastCheck = timestamp;
-        this.uptimeData[modelName].currentStatus = isUp ? "online" : "offline";
-        this.uptimeData[modelName].type = type;
+        this.uptimeData[validatedName].history.push(uptimeEntry);
+        this.uptimeData[validatedName].lastCheck = timestamp;
+        this.uptimeData[validatedName].currentStatus = isUp ? "online" : "offline";
+        this.uptimeData[validatedName].type = type;
 
         // Keep only the last N entries
-        if (this.uptimeData[modelName].history.length > this.historyLength) {
-            this.uptimeData[modelName].history = this.uptimeData[modelName].history.slice(-this.historyLength);
+        if (this.uptimeData[validatedName].history.length > this.historyLength) {
+            this.uptimeData[validatedName].history = this.uptimeData[validatedName].history.slice(-this.historyLength);
         }
 
-        log(`Recorded check for ${modelName}: ${isUp ? 'up' : 'down'}`);
+        log(`Recorded check for ${validatedName}: ${isUp ? 'up' : 'down'}`);
     }
 
     /**
@@ -91,7 +114,13 @@ class UptimeMonitor {
      * @param {string} modelName - Name of the model
      */
     getModelUptime(modelName) {
-        return this.uptimeData[modelName] || null;
+        // Validate model name to prevent prototype pollution
+        try {
+            const validatedName = this.validateModelName(modelName);
+            return this.uptimeData[validatedName] || null;
+        } catch (error) {
+            return null;
+        }
     }
 
     /**
@@ -107,18 +136,25 @@ class UptimeMonitor {
      * @param {number} hours - Number of hours to calculate percentage for (default: 24)
      */
     getUptimePercentage(modelName, hours = 24) {
-        const data = this.uptimeData[modelName];
-        if (!data || data.history.length === 0) {
+        // Validate model name to prevent prototype pollution
+        try {
+            const validatedName = this.validateModelName(modelName);
+            const data = this.uptimeData[validatedName];
+            
+            if (!data || data.history.length === 0) {
+                return null;
+            }
+
+            // Calculate how many entries to look at based on hours
+            // With 5-min intervals, 12 entries per hour
+            const entriesToCheck = Math.min(hours * 12, data.history.length);
+            const recentHistory = data.history.slice(-entriesToCheck);
+
+            const upCount = recentHistory.filter(entry => entry.status === "up").length;
+            return Math.round((upCount / recentHistory.length) * 100);
+        } catch (error) {
             return null;
         }
-
-        // Calculate how many entries to look at based on hours
-        // With 5-min intervals, 12 entries per hour
-        const entriesToCheck = Math.min(hours * 12, data.history.length);
-        const recentHistory = data.history.slice(-entriesToCheck);
-
-        const upCount = recentHistory.filter(entry => entry.status === "up").length;
-        return Math.round((upCount / recentHistory.length) * 100);
     }
 
     /**
