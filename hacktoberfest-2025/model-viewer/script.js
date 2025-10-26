@@ -13,10 +13,12 @@ let state = {
     uptimeData: {} // Now loaded from backend
 };
 
-// Backend URL - can be configured via environment
+// Backend URL - configure for your deployment
+// For Cloudflare Workers deployment, use your worker URL
+// For local development with Node.js backend, use localhost
 const UPTIME_BACKEND = window.location.hostname === 'localhost' 
     ? 'http://localhost:3001'
-    : 'https://your-uptime-backend.com'; // Configure this for production
+    : 'https://pollinations-uptime-monitor.your-subdomain.workers.dev'; // Replace with your worker URL
 
 // Pre-generated AI summaries for models
 const AI_SUMMARIES = {
