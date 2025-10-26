@@ -10,7 +10,7 @@ let state = {
     favorites: JSON.parse(localStorage.getItem('favorites') || '[]'),
     darkMode: localStorage.getItem('darkMode') === 'true',
     aiSummaries: {},
-    uptimeData: JSON.parse(localStorage.getItem('uptimeData') || '{}')
+    uptimeData: {} // Now loaded from backend instead of localStorage
 };
 
 // Pre-generated AI summaries for models
@@ -178,21 +178,23 @@ const fallbackImageModels = [
     },
 ];
 
-// Uptime Checker
+// Uptime Checker - Backend-based version
 class UptimeChecker {
     constructor() {
         this.checkInterval = 5 * 60 * 1000; // Check every 5 minutes
-        this.historyLength = 48; // Keep 48 data points (4 hours of history with 5-min intervals)
         this.checking = new Set();
+        this.backendUrl = 'https://text.pollinations.ai';
     }
 
-    initializeModelUptime(modelName) {
-        if (!state.uptimeData[modelName]) {
-            state.uptimeData[modelName] = {
-                history: [],
-                lastCheck: null,
-                currentStatus: 'unknown'
-            };
+    async loadUptimeData() {
+        try {
+            const response = await fetch(`${this.backendUrl}/uptime`);
+            if (response.ok) {
+                state.uptimeData = await response.json();
+                console.log('Loaded uptime data from backend');
+            }
+        } catch (error) {
+            console.error('Failed to load uptime data from backend:', error);
         }
     }
 
@@ -204,9 +206,7 @@ class UptimeChecker {
         }
 
         this.checking.add(modelName);
-        this.initializeModelUptime(modelName);
 
-        const timestamp = Date.now();
         let isUp = false;
 
         try {
@@ -242,35 +242,28 @@ class UptimeChecker {
             isUp = false;
         }
 
-        // Update uptime data
-        const uptimeEntry = {
-            timestamp,
-            status: isUp ? 'up' : 'down'
-        };
+        // Send uptime check result to backend
+        try {
+            await fetch(`${this.backendUrl}/uptime/${modelName}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    isUp,
+                    type
+                })
+            });
 
-        state.uptimeData[modelName].history.push(uptimeEntry);
-        state.uptimeData[modelName].lastCheck = timestamp;
-        state.uptimeData[modelName].currentStatus = isUp ? 'online' : 'offline';
-
-        // Keep only the last N entries
-        if (state.uptimeData[modelName].history.length > this.historyLength) {
-            state.uptimeData[modelName].history = state.uptimeData[modelName].history.slice(-this.historyLength);
+            // Reload uptime data from backend
+            await this.loadUptimeData();
+        } catch (error) {
+            console.error(`Failed to record uptime check for ${modelName}:`, error);
         }
-
-        // Save to localStorage
-        this.saveUptimeData();
         
         this.checking.delete(modelName);
 
         return isUp;
-    }
-
-    saveUptimeData() {
-        try {
-            localStorage.setItem('uptimeData', JSON.stringify(state.uptimeData));
-        } catch (error) {
-            console.error('Failed to save uptime data:', error);
-        }
     }
 
     getUptimePercentage(modelName) {
@@ -317,7 +310,10 @@ class UptimeChecker {
         filterAndRenderModels();
     }
 
-    startPeriodicChecks() {
+    async startPeriodicChecks() {
+        // Load initial data from backend
+        await this.loadUptimeData();
+        
         // Initial check
         setTimeout(() => this.checkAllModels(), 1000);
 
