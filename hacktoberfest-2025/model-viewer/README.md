@@ -5,7 +5,7 @@ A feature-rich viewer for exploring Pollinations AI models with real-time uptime
 ## Features
 
 - **17 AI Models** - 13 text + 4 image generation models
-- **Real-time Uptime Monitoring** - 24-hour history with visual bars and percentage tracking
+- **Real-time Uptime Monitoring** - 24-hour history with visual bars and percentage tracking (backend-based)
 - **Pre-generated AI Insights** - Curated descriptions for every model
 - **Advanced Search & Filters** - Search, filter by tier/capabilities
 - **Multiple View Modes** - Grid, List, and Compact views
@@ -25,15 +25,44 @@ A feature-rich viewer for exploring Pollinations AI models with real-time uptime
 
 - **Pure HTML/CSS/JS** - No dependencies, no build step
 - **Pollinations APIs** - Text and image model endpoints
-- **localStorage** - Persists preferences and uptime history
+- **Backend Storage** - Uptime data stored on text.pollinations.ai backend
 - **Modern JavaScript** - Async/await, ES6+, Fetch API
+
+## Uptime Monitoring
+
+The uptime monitor is now **backend-based**, storing history on the server instead of in the browser's localStorage:
+
+- **Backend API**: `https://text.pollinations.ai/uptime`
+- **Data Persistence**: Server-side file storage (uptime_data.json)
+- **History**: Up to 24 hours (288 data points at 5-minute intervals)
+- **Real-time Updates**: Checks models every 5 minutes
+- **Endpoints**:
+  - `GET /uptime` - Get all uptime data
+  - `GET /uptime/:modelName` - Get specific model uptime
+  - `POST /uptime/:modelName` - Record uptime check
+
+### Backend Implementation
+
+The backend uses a simple file-based storage system:
+
+```javascript
+// Record an uptime check
+POST https://text.pollinations.ai/uptime/openai
+{
+  "isUp": true,
+  "type": "text"
+}
+
+// Get uptime history
+GET https://text.pollinations.ai/uptime/openai
+```
 
 ## Project Structure
 
 ```
 ├── index.html    # Main HTML structure
 ├── styles.css    # All styling and animations
-├── script.js     # Logic and uptime checker
+├── script.js     # Logic and backend-based uptime checker
 └── README.md     # Documentation
 ```
 
