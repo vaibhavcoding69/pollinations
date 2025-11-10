@@ -26,7 +26,7 @@ export const createDocsRoutes = (apiRouter: Hono<Env>) => {
                     preferredSecurityScheme: "bearerAuth",
                     securitySchemes: {
                         bearerAuth: {
-                            token: "", // Users input their own API key
+                            token: c.env.EXAMPLE_API_KEY || "", // Users input their own API key
                         },
                     },
                 },
@@ -34,49 +34,52 @@ export const createDocsRoutes = (apiRouter: Hono<Env>) => {
         )
         .get(
             "/open-api/generate-schema",
-            openAPIRouteHandler(apiRouter, {
-                documentation: {
-                    servers: [{ url: "/api" }],
-                    info: {
-                        title: "Pollinations.AI API",
-                        version: "0.3.0",
-                        description: [
-                            "Documentation for `enter.pollinations.ai`.",
-                            "",
-                            "## Authentication",
-                            "",
-                            "This API uses Bearer token authentication for server-to-server requests.",
-                            "Create an API key from your dashboard at https://enter.pollinations.ai",
-                            "",
-                            "Include your API key in the `Authorization` header:",
-                            "```",
-                            "Authorization: Bearer YOUR_API_KEY",
-                            "```",
-                            "",
-                            "**Key Types:**",
-                            "- **Secret Keys:** Best rate limits, access to all models",
-                            "- **Publishable Keys:** Access to all models with IP-based rate limiting",
-                            "",
-                            "**Anonymous Access:** You can also use the API without authentication for free models with standard rate limits.",
-                        ].join("\n"),
-                    },
-                    components: {
-                        securitySchemes: {
-                            bearerAuth: {
-                                type: "http",
-                                scheme: "bearer",
-                                bearerFormat: "API Key",
-                                description:
-                                    "API key from enter.pollinations.ai dashboard",
+            (c) => {
+                const exampleKey = c.env.EXAMPLE_API_KEY || "YOUR_API_KEY";
+                return openAPIRouteHandler(apiRouter, {
+                    documentation: {
+                        servers: [{ url: "/api" }],
+                        info: {
+                            title: "Pollinations.AI API",
+                            version: "0.3.0",
+                            description: [
+                                "Documentation for `enter.pollinations.ai`.",
+                                "",
+                                "## Authentication",
+                                "",
+                                "This API uses Bearer token authentication for server-to-server requests.",
+                                "Create an API key from your dashboard at https://enter.pollinations.ai",
+                                "",
+                                "Include your API key in the `Authorization` header:",
+                                "```",
+                                `Authorization: Bearer ${exampleKey}`,
+                                "```",
+                                "",
+                                "**Key Types:**",
+                                "- **Secret Keys:** Best rate limits, access to all models",
+                                "- **Publishable Keys:** Access to all models with IP-based rate limiting",
+                                "",
+                                "**Anonymous Access:** You can also use the API without authentication for free models with standard rate limits.",
+                            ].join("\n"),
+                        },
+                        components: {
+                            securitySchemes: {
+                                bearerAuth: {
+                                    type: "http",
+                                    scheme: "bearer",
+                                    bearerFormat: "API Key",
+                                    description:
+                                        "API key from enter.pollinations.ai dashboard",
+                                },
                             },
                         },
+                        security: [
+                            {
+                                bearerAuth: [],
+                            },
+                        ],
                     },
-                    security: [
-                        {
-                            bearerAuth: [],
-                        },
-                    ],
-                },
-            }),
+                })(c);
+            },
         );
 };
