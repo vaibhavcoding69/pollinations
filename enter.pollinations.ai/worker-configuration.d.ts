@@ -25,6 +25,7 @@ declare namespace Cloudflare {
 		TINYBIRD_ACCESS_TOKEN: string;
 		TESTING_REFERRER: string;
 		ENTER_TOKEN: string;
+		EXAMPLE_API_KEY: string;
 		DB: D1Database;
 	}
 }
@@ -33,7 +34,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "ENVIRONMENT" | "LOG_LEVEL" | "ALLOW_ANONYMOUS_USAGE" | "POLAR_SUCCESS_URL" | "POLAR_SERVER" | "TINYBIRD_INGEST_URL" | "POLAR_PRODUCT_ID_SEED" | "POLAR_PRODUCT_ID_FLOWER" | "POLAR_PRODUCT_ID_NECTAR" | "IMAGE_SERVICE_URL" | "TEXT_SERVICE_URL" | "BETTER_AUTH_SECRET" | "POLAR_ACCESS_TOKEN" | "GITHUB_CLIENT_ID" | "GITHUB_CLIENT_SECRET" | "TINYBIRD_ACCESS_TOKEN" | "TESTING_REFERRER" | "ENTER_TOKEN">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "ENVIRONMENT" | "LOG_LEVEL" | "ALLOW_ANONYMOUS_USAGE" | "POLAR_SUCCESS_URL" | "POLAR_SERVER" | "TINYBIRD_INGEST_URL" | "POLAR_PRODUCT_ID_SEED" | "POLAR_PRODUCT_ID_FLOWER" | "POLAR_PRODUCT_ID_NECTAR" | "IMAGE_SERVICE_URL" | "TEXT_SERVICE_URL" | "BETTER_AUTH_SECRET" | "POLAR_ACCESS_TOKEN" | "GITHUB_CLIENT_ID" | "GITHUB_CLIENT_SECRET" | "TINYBIRD_ACCESS_TOKEN" | "TESTING_REFERRER" | "ENTER_TOKEN" | "EXAMPLE_API_KEY">> {}
 }
 
 // Begin runtime types
