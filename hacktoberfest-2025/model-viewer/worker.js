@@ -46,35 +46,33 @@ async function fetchModels() {
 // Check model uptime and record result
 async function checkAndRecordModel(env, modelName, type) {
     let isUp = false;
+    const timestamp = Date.now();
+    const seed = Math.floor(timestamp / 1000); // Use timestamp-based seed to avoid caching
     
     try {
         if (type === 'text') {
-            // Actually test text generation with a simple prompt
             const response = await fetch('https://text.pollinations.ai/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     messages: [{ role: 'user', content: 'test' }],
                     model: modelName,
-                    seed: 42
+                    seed
                 }),
                 signal: AbortSignal.timeout(10000)
             });
             if (response.ok) {
                 const text = await response.text();
-                // Check if we got a valid response (not empty)
                 isUp = text && text.length > 0;
             }
         } else if (type === 'image') {
-            // Actually generate a small test image
             const response = await fetch(
-                `https://image.pollinations.ai/prompt/test?model=${modelName}&width=64&height=64&nologo=true&seed=42`,
+                `https://image.pollinations.ai/prompt/test?model=${modelName}&width=64&height=64&nologo=true&seed=${seed}`,
                 { 
                     method: 'GET',
                     signal: AbortSignal.timeout(15000)
                 }
             );
-            // Verify we got an actual image response
             if (response.ok) {
                 const contentType = response.headers.get('content-type');
                 isUp = contentType && contentType.startsWith('image/');
@@ -85,7 +83,6 @@ async function checkAndRecordModel(env, modelName, type) {
         isUp = false;
     }
     
-    // Get existing data with error handling
     let existingData;
     try {
         existingData = await env.UPTIME_DATA.get(modelName, { type: 'json' }) || {
@@ -104,14 +101,11 @@ async function checkAndRecordModel(env, modelName, type) {
         };
     }
     
-    // Add new entry
-    const timestamp = Date.now();
     existingData.history.push({
         timestamp,
         status: isUp ? 'up' : 'down'
     });
     
-    // Keep only last 288 entries (24 hours at 5-min intervals)
     if (existingData.history.length > 288) {
         existingData.history = existingData.history.slice(-288);
     }
@@ -120,7 +114,6 @@ async function checkAndRecordModel(env, modelName, type) {
     existingData.currentStatus = isUp ? 'online' : 'offline';
     existingData.type = type;
     
-    // Store updated data with error handling
     try {
         await env.UPTIME_DATA.put(modelName, JSON.stringify(existingData));
     } catch (error) {
@@ -137,7 +130,6 @@ export default {
         
         const { textModels, imageModels } = await fetchModels();
         
-        // Check all models in parallel for faster execution
         await Promise.all([
             ...textModels.map(model => checkAndRecordModel(env, model.name, 'text')),
             ...imageModels.map(model => checkAndRecordModel(env, model.name, 'image'))
