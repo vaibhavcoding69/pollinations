@@ -4,6 +4,11 @@ import aiohttp
 import base64
 from config import POLLINATIONS_API_BASE, POLLINATIONS_API_KEY, GITHUB_TOKEN, SYSTEM_PROMPT
 
+# Configuration constants
+CODE_CONTEXT_MAX_CHARS = 3000  # Maximum characters of code context to include
+CODE_SEARCH_MAX_RESULTS = 5   # Maximum number of code search results
+CODE_KEYWORDS = ["code", "example", "how to", "implement", "function", "class", "source", "file"]
+
 
 class GitHubClient:
     """Client for fetching code from GitHub repository."""
@@ -73,7 +78,7 @@ class GitHubClient:
                     if response.status == 200:
                         data = await response.json()
                         results = []
-                        for item in data.get("items", [])[:5]:  # Limit to 5 results
+                        for item in data.get("items", [])[:CODE_SEARCH_MAX_RESULTS]:
                             results.append({
                                 "path": item.get("path"),
                                 "url": item.get("html_url")
@@ -106,13 +111,12 @@ class PollinationsClient:
         """
         # Check if user is asking about code - fetch relevant context
         code_context = ""
-        code_keywords = ["code", "example", "how to", "implement", "function", "class", "source", "file"]
-        if any(keyword in user_message.lower() for keyword in code_keywords):
+        if any(keyword in user_message.lower() for keyword in CODE_KEYWORDS):
             # Try to fetch relevant documentation
             apidocs = await self.github.get_file_content("APIDOCS.md")
             if not apidocs.startswith("Error") and not apidocs.startswith("File not found"):
                 # Truncate to avoid token limits
-                code_context = f"\n\n## Relevant Code from Repository:\n{apidocs[:3000]}..."
+                code_context = f"\n\n## Relevant Code from Repository:\n{apidocs[:CODE_CONTEXT_MAX_CHARS]}..."
         
         system_content = SYSTEM_PROMPT + code_context
         messages = [{"role": "system", "content": system_content}]
