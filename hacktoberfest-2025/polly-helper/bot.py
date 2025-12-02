@@ -238,12 +238,12 @@ async def status_command(ctx: commands.Context):
         embed = discord.Embed(
             title="🌸 Pollinations API Status",
             description="**enter.pollinations.ai** (current API)",
-            color=discord.Color.green() if health['enter_gateway'] else discord.Color.red()
+            color=discord.Color.green() if health['api_reachable'] else discord.Color.red()
         )
         
         embed.add_field(
-            name="API Gateway",
-            value=f"{status_emoji(health['enter_gateway'])} enter.pollinations.ai",
+            name="API Status",
+            value=f"{status_emoji(health['api_reachable'])} enter.pollinations.ai",
             inline=True
         )
         embed.add_field(

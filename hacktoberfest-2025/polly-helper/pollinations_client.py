@@ -67,7 +67,7 @@ class PollinationsClient:
             Dict with status information
         """
         results = {
-            "enter_gateway": False,
+            "api_reachable": False,
             "image_models": False,
             "text_models": False
         }
@@ -77,11 +77,12 @@ class PollinationsClient:
             headers["Authorization"] = f"Bearer {self.api_key}"
 
         async with aiohttp.ClientSession() as session:
-            # Check image models endpoint (serves as gateway health check)
+            # Check image models endpoint
             try:
                 async with session.get(f"{self.base_url}/api/generate/image/models", headers=headers, timeout=10) as response:
                     results["image_models"] = response.status == 200
-                    results["enter_gateway"] = response.status == 200
+                    if response.status == 200:
+                        results["api_reachable"] = True
             except:
                 pass
 
@@ -89,6 +90,8 @@ class PollinationsClient:
             try:
                 async with session.get(f"{self.base_url}/api/generate/openai/models", headers=headers, timeout=10) as response:
                     results["text_models"] = response.status == 200
+                    if response.status == 200:
+                        results["api_reachable"] = True
             except:
                 pass
 

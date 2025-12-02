@@ -80,8 +80,8 @@ Body: {"model": "openai-audio", "messages": [...], "modalities": ["text", "audio
 - Text models: `GET /api/generate/openai/models`
 
 ## Common Error Codes:
-- 401 Unauthorized: Missing or invalid API key (all models require auth)
-- 403 Forbidden: Insufficient pollen balance for paid models
+- 401 Unauthorized: Missing or invalid API key (authentication required for all endpoints)
+- 403 Forbidden: Insufficient pollen balance for paid models (flux is free but still requires auth)
 - 500 Internal Server Error: Add delays between requests, backend may be overloaded
 
 ## Response Format:
