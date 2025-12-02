@@ -72,24 +72,22 @@ class PollinationsClient:
             "text_models": False
         }
 
-        async with aiohttp.ClientSession() as session:
-            # Check enter.pollinations.ai gateway
-            try:
-                async with session.get(f"{self.base_url}/health", timeout=10) as response:
-                    results["enter_gateway"] = response.status == 200
-            except:
-                pass
+        headers = {}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
 
-            # Check image models endpoint
+        async with aiohttp.ClientSession() as session:
+            # Check image models endpoint (serves as gateway health check)
             try:
-                async with session.get(f"{self.base_url}/api/generate/image/models", timeout=10) as response:
+                async with session.get(f"{self.base_url}/api/generate/image/models", headers=headers, timeout=10) as response:
                     results["image_models"] = response.status == 200
+                    results["enter_gateway"] = response.status == 200
             except:
                 pass
 
             # Check text models endpoint
             try:
-                async with session.get(f"{self.base_url}/api/generate/openai/models", timeout=10) as response:
+                async with session.get(f"{self.base_url}/api/generate/openai/models", headers=headers, timeout=10) as response:
                     results["text_models"] = response.status == 200
             except:
                 pass

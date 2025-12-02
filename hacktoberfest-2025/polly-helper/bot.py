@@ -281,36 +281,36 @@ async def help_api_command(ctx: commands.Context):
     
     embed = discord.Embed(
         title="🌸 Pollinations API Quick Reference",
-        description="⚠️ **image.pollinations.ai & text.pollinations.ai are DEPRECATED!**\nUse **enter.pollinations.ai** instead.",
+        description="Use **enter.pollinations.ai** - the unified API gateway.\n(Legacy endpoints are being phased out)",
         color=discord.Color.purple()
     )
     
     embed.add_field(
-        name="🔑 Get API Key",
-        value="Get your key at https://enter.pollinations.ai",
+        name="🔑 API Keys",
+        value="Get your key at https://enter.pollinations.ai\n• `pk_` keys: client-side, rate limited\n• `sk_` keys: server-side, best limits",
         inline=False
     )
     
     embed.add_field(
         name="🖼️ Image Generation",
-        value="```\nGET https://enter.pollinations.ai/api/generate/image/{prompt}?key=YOUR_KEY\n```",
+        value="```\nGET https://enter.pollinations.ai/api/generate/image/{prompt}\nAuth: ?key=YOUR_KEY or Authorization: Bearer YOUR_KEY\n```",
         inline=False
     )
     
     embed.add_field(
-        name="💬 Text Generation",
+        name="💬 Text Generation (OpenAI-compatible)",
         value="```\nPOST https://enter.pollinations.ai/api/generate/openai\nBody: {\"model\": \"openai\", \"messages\": [...]}\n```",
         inline=False
     )
     
     embed.add_field(
-        name="📋 List Models",
-        value="Image: `/api/generate/image/models`\nText: `/api/generate/openai/models`",
+        name="📋 Model Discovery",
+        value="• Image: `GET /api/generate/image/models`\n• Text: `GET /api/generate/openai/models`",
         inline=False
     )
     
     embed.add_field(
-        name="📚 Full Documentation",
+        name="📚 Documentation",
         value="[API Docs](https://enter.pollinations.ai/api/docs) | [GitHub](https://github.com/pollinations/pollinations)",
         inline=False
     )
