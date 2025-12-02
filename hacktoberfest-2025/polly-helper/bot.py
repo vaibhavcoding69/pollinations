@@ -299,13 +299,13 @@ async def help_api_command(ctx: commands.Context):
     
     embed.add_field(
         name="💬 Text Generation (OpenAI-compatible)",
-        value="```\nPOST https://enter.pollinations.ai/api/generate/openai\nBody: {\"model\": \"openai\", \"messages\": [...]}\n```",
+        value="```\nPOST https://enter.pollinations.ai/api/generate/v1/chat/completions\nBody: {\"model\": \"openai\", \"messages\": [...]}\n```",
         inline=False
     )
     
     embed.add_field(
         name="📋 Model Discovery",
-        value="• Image: `GET /api/generate/image/models`\n• Text: `GET /api/generate/openai/models`",
+        value="• Image: `GET /api/generate/image/models`\n• Text: `GET /api/generate/v1/models`",
         inline=False
     )
     

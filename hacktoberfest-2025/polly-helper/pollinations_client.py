@@ -39,7 +39,7 @@ class PollinationsClient:
         }
 
         # enter.pollinations.ai OpenAI-compatible endpoint
-        url = f"{self.base_url}/api/generate/openai"
+        url = f"{self.base_url}/api/generate/v1/chat/completions"
         
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
@@ -88,7 +88,7 @@ class PollinationsClient:
 
             # Check text models endpoint
             try:
-                async with session.get(f"{self.base_url}/api/generate/openai/models", headers=headers, timeout=10) as response:
+                async with session.get(f"{self.base_url}/api/generate/v1/models", headers=headers, timeout=10) as response:
                     results["text_models"] = response.status == 200
                     if response.status == 200:
                         results["api_reachable"] = True
